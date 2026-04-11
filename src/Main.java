@@ -29,6 +29,9 @@ public class Main {
             System.out.println("----------------------------------------");
             System.out.println("8. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
             System.out.println("9. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
+            System.out.println("16. [Q6] Executar Travessia In-Order");
+            System.out.println("17. [Q7] Executar Travessia Pos-Order");
+            System.out.println("18. [Q18] Executar Travessia BFS (Kahn)");
             System.out.println("0. Sair do Programa");
             System.out.println("----------------------------------------");
             System.out.print("-> Escolha uma opção: ");
@@ -113,6 +116,21 @@ public class Main {
 
                         // Aqui chamaremos as funções de Isomorfismo e Similaridade futuramente
                         System.out.println("[Em breve: Resultados do Isomorfismo e Similaridade de Jaccard/Cosseno]");
+                        break;
+
+                    case 16:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 6 (IN-ORDER) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.travessiaInOrdem();
+                        break;
+
+                    case 17:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 7 (POS-ORDER) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.travessiaPosOrdem();
+                        break;
+
+                    case 18:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 18 (BFS) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.bfsOrdenacaoTopologica();
                         break;
 
                     case 0:

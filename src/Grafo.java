@@ -182,4 +182,193 @@ public class Grafo {
             incluirAresta(origem, destino, custo, "LigacaoAuto");
         }
     }
+
+    // =========================================================================
+    // QUESTÃO 6: TRAVESSIA IN-ORDER E ROTULAÇÃO TOPOLÓGICA
+    // =========================================================================
+    public void travessiaInOrdem() {
+        if (vetorVertices == null || capacidadeAtual == 0) {
+            System.out.println("Grafo vazio ou não inicializado.");
+            return;
+        }
+
+        boolean[] visitado = new boolean[capacidadeAtual];
+
+        // Conta os vértices ativos para criar o array de resultados
+        int numVerticesAtivos = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) numVerticesAtivos++;
+        }
+
+        int[] ordemTopologica = new int[numVerticesAtivos];
+        int[] contadorRotulo = {0}; // Usado como array de 1 posição para passar por referência
+
+        System.out.println("\n[Rastro da Travessia In-Order]");
+
+        // O loop garante que todos os vértices sejam visitados (mesmo em grafos desconexos)
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && !visitado[i]) {
+                inOrdemRecursivo(i, visitado, contadorRotulo, ordemTopologica);
+            }
+        }
+
+        // Imprime o resultado final exigido pela questão
+        System.out.print("\n>>> RESULTADO DA ROTULAÇÃO TOPOLÓGICA (In-Order): ");
+        for (int i = 0; i < numVerticesAtivos; i++) {
+            System.out.print("V" + ordemTopologica[i] + " ");
+        }
+        System.out.println("\n");
+    }
+
+    private void inOrdemRecursivo(int vIndex, boolean[] visitado, int[] rotulo, int[] ordemTopologica) {
+        visitado[vIndex] = true;
+        Aresta atual = vetorVertices[vIndex].inicioLista;
+
+        // 1. Visita o PRIMEIRO vizinho (Simula a descida à "Esquerda" da árvore)
+        if (atual != null) {
+            if (vetorVertices[atual.idDestino] != null && !visitado[atual.idDestino]) {
+                inOrdemRecursivo(atual.idDestino, visitado, rotulo, ordemTopologica);
+            }
+            atual = atual.proxima; // Avança o ponteiro para o próximo vizinho
+        }
+
+        // 2. Processa a "RAIZ" (O vértice atual)
+        ordemTopologica[rotulo[0]] = vetorVertices[vIndex].id;
+        System.out.println(" -> Atribuindo Rótulo Topológico [" + rotulo[0] + "] ao V" + vetorVertices[vIndex].id + " (" + vetorVertices[vIndex].caracteristica + ")");
+        rotulo[0]++;
+
+        // 3. Visita os VIZINHOS RESTANTES (Simula a descida à "Direita" da árvore)
+        while (atual != null) {
+            if (vetorVertices[atual.idDestino] != null && !visitado[atual.idDestino]) {
+                inOrdemRecursivo(atual.idDestino, visitado, rotulo, ordemTopologica);
+            }
+            atual = atual.proxima;
+        }
+    }
+
+    // =========================================================================
+    // QUESTÃO 7: TRAVESSIA POS-ORDER E ROTULAÇÃO TOPOLÓGICA
+    // =========================================================================
+    public void travessiaPosOrdem() {
+        if (vetorVertices == null || capacidadeAtual == 0) return;
+
+        boolean[] visitado = new boolean[capacidadeAtual];
+        int numVerticesAtivos = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) numVerticesAtivos++;
+        }
+
+        int[] ordemTopologica = new int[numVerticesAtivos];
+        int[] contadorRotulo = {0};
+
+        System.out.println("\n[Rastro da Travessia Pos-Order]");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && !visitado[i]) {
+                posOrdemRecursivo(i, visitado, contadorRotulo, ordemTopologica);
+            }
+        }
+
+        System.out.print("\n>>> RESULTADO DA ROTULAÇÃO TOPOLÓGICA (Pos-Order): ");
+        // Imprime de trás para frente para ter a ordem topológica correta
+        for (int i = numVerticesAtivos - 1; i >= 0; i--) {
+            System.out.print("V" + ordemTopologica[i] + " ");
+        }
+        System.out.println("\n");
+    }
+
+    private void posOrdemRecursivo(int vIndex, boolean[] visitado, int[] rotulo, int[] ordemTopologica) {
+        visitado[vIndex] = true;
+        Aresta atual = vetorVertices[vIndex].inicioLista;
+
+        // 1. PRIMEIRO visita absolutamente TODOS os vizinhos
+        while (atual != null) {
+            if (vetorVertices[atual.idDestino] != null && !visitado[atual.idDestino]) {
+                posOrdemRecursivo(atual.idDestino, visitado, rotulo, ordemTopologica);
+            }
+            atual = atual.proxima;
+        }
+
+        // 2. POR ÚLTIMO, processa a "RAIZ"
+        ordemTopologica[rotulo[0]] = vetorVertices[vIndex].id;
+        System.out.println(" -> Finalizou e Rotulou o V" + vetorVertices[vIndex].id);
+        rotulo[0]++;
+    }
+
+    // =========================================================================
+    // QUESTÃO 18: TRAVESSIA BFS (ALGORITMO DE KAHN)
+    // =========================================================================
+    public void bfsOrdenacaoTopologica() {
+        if (vetorVertices == null || capacidadeAtual == 0) return;
+
+        int numVerticesAtivos = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) numVerticesAtivos++;
+        }
+
+        // 1. Calcula o grau de entrada (quantas setas chegam) de cada vértice
+        int[] grauEntrada = new int[capacidadeAtual];
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    grauEntrada[atual.idDestino]++;
+                    atual = atual.proxima;
+                }
+            }
+        }
+
+        // 2. Nossa FILA manual (feita com vetor para o professor não reclamar)
+        int[] fila = new int[capacidadeAtual];
+        int inicioFila = 0;
+        int fimFila = 0;
+
+        // Adiciona na fila todos que têm grau de entrada 0 (não dependem de ninguém)
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && grauEntrada[i] == 0) {
+                fila[fimFila++] = i;
+            }
+        }
+
+        int[] ordemTopologica = new int[numVerticesAtivos];
+        int contadorOrdem = 0;
+
+        System.out.println("\n[Rastro da Travessia BFS - Kahn]");
+
+        // 3. Processa a fila
+        while (inicioFila < fimFila) {
+            int u = fila[inicioFila++]; // Tira o primeiro da fila
+            ordemTopologica[contadorOrdem++] = vetorVertices[u].id;
+            System.out.println(" -> Visitando Camada: V" + vetorVertices[u].id);
+
+            // Reduz o grau de entrada dos vizinhos
+            Aresta atual = vetorVertices[u].inicioLista;
+            while (atual != null) {
+                grauEntrada[atual.idDestino]--;
+                // Se o vizinho zerou as dependências, entra na fila
+                if (grauEntrada[atual.idDestino] == 0) {
+                    fila[fimFila++] = atual.idDestino;
+                }
+                atual = atual.proxima;
+            }
+        }
+
+        // Verifica se processou tudo (se não, o grafo tem um ciclo)
+        if (contadorOrdem != numVerticesAtivos) {
+            System.out.println("\n>>> AVISO: O grafo possui um CICLO! Ordem topológica BFS impossível.");
+        } else {
+            System.out.print("\n>>> RESULTADO DA ROTULAÇÃO TOPOLÓGICA (BFS): ");
+            for (int i = 0; i < numVerticesAtivos; i++) {
+                System.out.print("V" + ordemTopologica[i] + " ");
+            }
+            System.out.println("\n");
+        }
+    }
+
+
+
+
+
+
+
+
 }

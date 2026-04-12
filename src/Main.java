@@ -27,11 +27,13 @@ public class Main {
             System.out.println("6. Mostrar Grafo Atual");
             System.out.println("7. Preenchimento Automático");
             System.out.println("----------------------------------------");
-            System.out.println("8. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
-            System.out.println("9. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
-            System.out.println("16. [Q6] Executar Travessia In-Order");
-            System.out.println("17. [Q7] Executar Travessia Pos-Order");
+            System.out.println("8.  [Q8]  Gerar Subgrafo Maximal Árvore (Kruskal)"); // <-- NOVA OPÇÃO AQUI
+            System.out.println("16. [Q6]  Executar Travessia In-Order");
+            System.out.println("17. [Q7]  Executar Travessia Pos-Order (DFS)");
             System.out.println("18. [Q18] Executar Travessia BFS (Kahn)");
+            System.out.println("----------------------------------------");
+            System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
+            System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
             System.out.println("0. Sair do Programa");
             System.out.println("----------------------------------------");
             System.out.print("-> Escolha uma opção: ");
@@ -102,12 +104,18 @@ public class Main {
                         System.out.println("[!] G" + (indiceAtivo + 1) + " populado.");
                         break;
 
-                    case 8: // ALTERNAR GRAFO
+                    case 8: // QUESTÃO 8
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 8 NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.subgrafoMaximalArvore();
+                        break;
+
+
+                    case 99: // ALTERNAR GRAFO
                         indiceAtivo = (indiceAtivo == 0) ? 1 : 0;
                         System.out.println(">> Você agora está editando o G" + (indiceAtivo + 1));
                         break;
 
-                    case 9: // COMPARAÇÃO (Respostas 9 e 10)
+                    case 88: // COMPARAÇÃO (Respostas 9 e 10)
                         System.out.println("\n--- COMPARAÇÃO ENTRE G1 e G2 ---");
                         System.out.println("G1:");
                         ambienteGrafos[0].mostrarGrafo();

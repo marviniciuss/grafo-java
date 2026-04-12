@@ -364,6 +364,120 @@ public class Grafo {
         }
     }
 
+// =========================================================================
+    // QUESTÃO 8: SUBGRAFO MAXIMAL ÁRVORE (ALGORITMO DE KRUSKAL COM UNION-FIND)
+    // =========================================================================
+
+    // Classe auxiliar interna apenas para organizar as arestas em um vetor linear
+    private class ArestaKruskal {
+        int origem, destino;
+        double custo;
+        ArestaKruskal(int o, int d, double c) {
+            this.origem = o; this.destino = d; this.custo = c;
+        }
+    }
+
+    public void subgrafoMaximalArvore() {
+        if (vetorVertices == null || capacidadeAtual == 0) {
+            System.out.println("Grafo vazio.");
+            return;
+        }
+
+        // 1. Contar total de arestas e vértices ativos
+        int totalArestas = 0;
+        int numVerticesAtivos = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                numVerticesAtivos++;
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    totalArestas++;
+                    atual = atual.proxima;
+                }
+            }
+        }
+
+        if (numVerticesAtivos <= 1 || totalArestas == 0) {
+            System.out.println("Não há arestas suficientes para formar uma árvore.");
+            return;
+        }
+
+        // 2. Extrair todas as arestas do grafo para um vetor simples
+        ArestaKruskal[] todasArestas = new ArestaKruskal[totalArestas];
+        int indexAresta = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    todasArestas[indexAresta++] = new ArestaKruskal(i, atual.idDestino, atual.custo);
+                    atual = atual.proxima;
+                }
+            }
+        }
+
+        // 3. Ordenar as arestas pelo menor custo (Bubble Sort manual)
+        for (int i = 0; i < totalArestas - 1; i++) {
+            for (int j = 0; j < totalArestas - i - 1; j++) {
+                if (todasArestas[j].custo > todasArestas[j + 1].custo) {
+                    ArestaKruskal temp = todasArestas[j];
+                    todasArestas[j] = todasArestas[j + 1];
+                    todasArestas[j + 1] = temp;
+                }
+            }
+        }
+
+        // 4. Estrutura UNION-FIND (Conjuntos Disjuntos)
+        int[] pai = new int[capacidadeAtual];
+        for (int i = 0; i < capacidadeAtual; i++) {
+            pai[i] = i; // Inicialmente, cada vértice é "pai" de si mesmo (isolado)
+        }
+
+        System.out.println("\n[Construindo Subgrafo Maximal Árvore - Algoritmo de Kruskal]");
+        double custoTotal = 0.0;
+        int arestasNaArvore = 0;
+
+        System.out.println(">>> ARESTAS DA ÁRVORE GERADORA:");
+
+        // 5. Varredura do Algoritmo de Kruskal
+        for (int i = 0; i < totalArestas; i++) {
+            ArestaKruskal aresta = todasArestas[i];
+
+            // Verifica em qual conjunto as pontas da aresta estão
+            int raizOrigem = encontrarRaiz(aresta.origem, pai);
+            int raizDestino = encontrarRaiz(aresta.destino, pai);
+
+            // Se as raízes são diferentes, conectar não forma ciclo. Incluímos na árvore!
+            if (raizOrigem != raizDestino) {
+                pai[raizOrigem] = raizDestino; // Une os dois conjuntos
+                custoTotal += aresta.custo;
+                arestasNaArvore++;
+
+                System.out.println(" -> Adicionada: V" + aresta.origem + " --(Custo: " + aresta.custo + ")--> V" + aresta.destino);
+
+                // Condição de parada: Uma árvore tem sempre (Vértices - 1) arestas
+                if (arestasNaArvore == numVerticesAtivos - 1) {
+                    break;
+                }
+            }
+        }
+
+        System.out.println("=========================================");
+        System.out.println("Custo Total da Árvore: " + custoTotal);
+        if (arestasNaArvore < numVerticesAtivos - 1) {
+            System.out.println("AVISO: O grafo original possui partes desconectadas. Foi gerada uma FLORESTA em vez de uma Árvore única.");
+        }
+        System.out.println("=========================================\n");
+    }
+
+    // Método auxiliar matemático para o Union-Find (com Compressão de Caminho)
+    private int encontrarRaiz(int i, int[] pai) {
+        if (pai[i] == i) {
+            return i;
+        }
+        // Ao voltar da recursão, atualiza o pai direto para a raiz (otimização extrema)
+        pai[i] = encontrarRaiz(pai[i], pai);
+        return pai[i];
+    }
 
 
 

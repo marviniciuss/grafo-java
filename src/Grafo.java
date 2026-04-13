@@ -479,6 +479,123 @@ public class Grafo {
         return pai[i];
     }
 
+// =========================================================================
+    // QUESTÃO 9: VERIFICAÇÃO DE ISOMORFISMO
+    // =========================================================================
+
+    public boolean verificarIsomorfismo(Grafo outroGrafo) {
+        if (this.vetorVertices == null || outroGrafo.vetorVertices == null) return false;
+
+        // Filtro 1: Mesma quantidade de vértices ativos?
+        int v1 = this.contarVerticesAtivos();
+        int v2 = outroGrafo.contarVerticesAtivos();
+        if (v1 != v2) return false;
+        if (v1 == 0) return true; // Dois grafos vazios são isomorfos
+
+        // Filtro 2: Mesma quantidade de arestas totais?
+        int e1 = this.contarArestasTotais();
+        int e2 = outroGrafo.contarArestasTotais();
+        if (e1 != e2) return false;
+
+        // Extrai os IDs exatos que estão sendo usados (pois podemos ter apagado alguns no meio do caminho)
+        int[] ids1 = this.obterIdsAtivos(v1);
+        int[] ids2 = outroGrafo.obterIdsAtivos(v2);
+
+        // Transforma as Listas em Matrizes de Adjacência apenas para a comparação matemática
+        int[][] mat1 = this.construirMatriz(ids1, v1);
+        int[][] mat2 = outroGrafo.construirMatriz(ids2, v2);
+
+        boolean[] visitado = new boolean[v1];
+        int[] mapeamento = new int[v1]; // Tenta mapear o vértice X do G1 para o Y do G2
+
+        // Chama a força bruta (Backtracking)
+        return backtrackIsomorfismo(0, v1, mat1, mat2, visitado, mapeamento);
+    }
+
+    // Métodos Auxiliares para o Isomorfismo
+    private int contarVerticesAtivos() {
+        int cont = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) cont++;
+        }
+        return cont;
+    }
+
+    private int contarArestasTotais() {
+        int cont = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    cont++;
+                    atual = atual.proxima;
+                }
+            }
+        }
+        return cont;
+    }
+
+    private int[] obterIdsAtivos(int qtd) {
+        int[] ids = new int[qtd];
+        int index = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                ids[index++] = vetorVertices[i].id;
+            }
+        }
+        return ids;
+    }
+
+    private int[][] construirMatriz(int[] ids, int n) {
+        int[][] mat = new int[n][n]; // Guarda a QUANTIDADE de arestas (pois é multigrafo)
+        for (int i = 0; i < n; i++) {
+            Aresta atual = vetorVertices[ids[i]].inicioLista;
+            while (atual != null) {
+                int j = encontrarIndiceNoVetor(ids, atual.idDestino);
+                if (j != -1) mat[i][j]++;
+                atual = atual.proxima;
+            }
+        }
+        return mat;
+    }
+
+    private int encontrarIndiceNoVetor(int[] vetor, int valor) {
+        for (int i = 0; i < vetor.length; i++) {
+            if (vetor[i] == valor) return i;
+        }
+        return -1;
+    }
+
+    // O motor matemático: Testa todas as permutações possíveis
+    private boolean backtrackIsomorfismo(int indexA, int n, int[][] mat1, int[][] mat2, boolean[] visitado, int[] mapeamento) {
+        // Se conseguimos mapear todos os vértices, verificamos se as arestas batem
+        if (indexA == n) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    // O número de arestas entre i->j no G1 tem que ser igual ao mapeado no G2
+                    if (mat1[i][j] != mat2[mapeamento[i]][mapeamento[j]]) {
+                        return false;
+                    }
+                }
+            }
+            return true; // Encontrou um mapeamento perfeito!
+        }
+
+        // Tenta mapear o vértice 'indexA' do G1 para algum vértice 'i' do G2
+        for (int i = 0; i < n; i++) {
+            if (!visitado[i]) {
+                visitado[i] = true;
+                mapeamento[indexA] = i;
+
+                if (backtrackIsomorfismo(indexA + 1, n, mat1, mat2, visitado, mapeamento)) {
+                    return true;
+                }
+
+                visitado[i] = false; // Desfaz e tenta a próxima combinação
+            }
+        }
+        return false;
+    }
 
 
 

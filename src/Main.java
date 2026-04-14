@@ -115,23 +115,23 @@ public class Main {
                         System.out.println(">> Você agora está editando o G" + (indiceAtivo + 1));
                         break;
 
-                    case 88: // COMPARAÇÃO G1 E G2
+                    case 88: // COMPARAÇÃO G1 E G2 (QUESTÕES 9 E 10)
                         System.out.println("\n--- COMPARANDO ESTRUTURAS ---");
                         System.out.println("Grafo 1 (G1):");
                         ambienteGrafos[0].mostrarGrafo();
                         System.out.println("Grafo 2 (G2):");
                         ambienteGrafos[1].mostrarGrafo();
 
-                        System.out.println("\n[Processando Isomorfismo...]");
+                        System.out.println("\n[Processando Isomorfismo - Questão 9]");
                         boolean isomorfos = ambienteGrafos[0].verificarIsomorfismo(ambienteGrafos[1]);
-
                         if (isomorfos) {
-                            System.out.println(">>> RESULTADO DA QUESTÃO 9: SIM! Os grafos G1 e G2 SÃO isomorfos.");
+                            System.out.println(">>> RESULTADO Q9: SIM! Os grafos SÃO isomorfos.");
                         } else {
-                            System.out.println(">>> RESULTADO DA QUESTÃO 9: NÃO! Os grafos G1 e G2 NÃO são isomorfos.");
+                            System.out.println(">>> RESULTADO Q9: NÃO! Os grafos NÃO são isomorfos.");
                         }
 
-                        System.out.println("\n[Aviso: As similaridades de Jaccard/Cosseno da Q10 serão implementadas aqui em breve]");
+                        System.out.println("\n[Processando Similaridade - Questão 10]");
+                        ambienteGrafos[0].calcularSimilaridade(ambienteGrafos[1]);
                         break;
 
                     case 16:

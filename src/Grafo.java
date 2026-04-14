@@ -598,6 +598,101 @@ public class Grafo {
     }
 
 
+// =========================================================================
+    // QUESTÃO 10: SIMILARIDADE (JACCARD, COSSENO E SOBREPOSIÇÃO)
+    // =========================================================================
+
+    public void calcularSimilaridade(Grafo outroGrafo) {
+        if (this.vetorVertices == null || outroGrafo.vetorVertices == null) {
+            System.out.println("Erro: Um dos grafos não está inicializado.");
+            return;
+        }
+
+        // 1. Calcula o tamanho dos conjuntos (Arestas distintas de G1 e G2)
+        int arestasG1 = this.contarArestasDistintas();
+        int arestasG2 = outroGrafo.contarArestasDistintas();
+
+        // 2. Calcula a Interseção (Arestas presentes em ambos)
+        int intersecao = this.contarIntersecaoDistinta(outroGrafo);
+
+        // 3. Calcula a União (Soma de tudo menos a interseção)
+        int uniao = arestasG1 + arestasG2 - intersecao;
+
+        System.out.println("\n[Dados dos Conjuntos de Arestas]");
+        System.out.println(" |E1| (Arestas G1) : " + arestasG1);
+        System.out.println(" |E2| (Arestas G2) : " + arestasG2);
+        System.out.println(" Interseção (Em ambos): " + intersecao);
+        System.out.println(" União (Total único)  : " + uniao);
+
+        System.out.println("\n>>> RESULTADOS DA QUESTÃO 10 <<<");
+
+        // Tratamento de segurança para grafos vazios (divisão por zero)
+        if (uniao == 0 || arestasG1 == 0 || arestasG2 == 0) {
+            System.out.println("Não é possível calcular similaridade em grafos sem arestas válidas.");
+            return;
+        }
+
+        // JACCARD: Interseção / União
+        double jaccard = (double) intersecao / uniao;
+
+        // COSSENO: Interseção / Raiz(E1 * E2)
+        double cosseno = (double) intersecao / Math.sqrt(arestasG1 * arestasG2);
+
+        // SOBREPOSIÇÃO (OVERLAP): Interseção / Minimo(E1, E2)
+        double minElementos = Math.min(arestasG1, arestasG2);
+        double sobreposicao = (double) intersecao / minElementos;
+
+        System.out.printf(" 1. Jaccard      : %.4f (%.2f%%)%n", jaccard, jaccard * 100);
+        System.out.printf(" 2. Cosseno      : %.4f (%.2f%%)%n", cosseno, cosseno * 100);
+        System.out.printf(" 3. Sobreposição : %.4f (%.2f%%)%n", sobreposicao, sobreposicao * 100);
+    }
+
+    // Métodos Auxiliares para a Matemática de Conjuntos
+    private int contarArestasDistintas() {
+        int cont = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                boolean[] visitadoDestino = new boolean[capacidadeAtual];
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    // Garante que só conta 1 vez no conjunto, mesmo sendo multigrafo
+                    if (atual.idDestino < capacidadeAtual && !visitadoDestino[atual.idDestino]) {
+                        visitadoDestino[atual.idDestino] = true;
+                        cont++;
+                    }
+                    atual = atual.proxima;
+                }
+            }
+        }
+        return cont;
+    }
+
+    private int contarIntersecaoDistinta(Grafo outro) {
+        int intersecao = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            // Só faz sentido buscar se a origem existe nos dois grafos
+            if (this.vetorVertices[i] != null && i < outro.capacidadeAtual && outro.vetorVertices[i] != null) {
+                boolean[] visitadoDestino = new boolean[this.capacidadeAtual];
+                Aresta atual = this.vetorVertices[i].inicioLista;
+
+                while (atual != null) {
+                    if (atual.idDestino < this.capacidadeAtual && !visitadoDestino[atual.idDestino]) {
+                        visitadoDestino[atual.idDestino] = true;
+
+                        // Verifica se o outro grafo também possui essa aresta
+                        if (outro.buscarAresta(i, atual.idDestino)) {
+                            intersecao++;
+                        }
+                    }
+                    atual = atual.proxima;
+                }
+            }
+        }
+        return intersecao;
+    }
+
+
+
 
 
 

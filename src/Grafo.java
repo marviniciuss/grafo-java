@@ -16,7 +16,7 @@ public class Grafo {
         this.capacidadeAtual = 0;
     }
 
-    // Método auxiliar para redimensionar o vetor na unha (sem usar ArrayList)
+    // Metodo auxiliar para redimensionar o vetor na unha (sem usar ArrayList)
     private void garantirCapacidade(int idDesejado) {
         if (vetorVertices == null) return;
         if (idDesejado >= capacidadeAtual) {
@@ -469,7 +469,7 @@ public class Grafo {
         System.out.println("=========================================\n");
     }
 
-    // Método auxiliar matemático para o Union-Find (com Compressão de Caminho)
+    // Metodo auxiliar matemático para o Union-Find (com Compressão de Caminho)
     private int encontrarRaiz(int i, int[] pai) {
         if (pai[i] == i) {
             return i;
@@ -690,6 +690,170 @@ public class Grafo {
         }
         return intersecao;
     }
+
+// =========================================================================
+    // QUESTÕES 11, 12 e 13: MÉTRICAS DE DISTÂNCIA E CICLOS (COM RASTREAMENTO)
+    // =========================================================================
+
+    // Classe auxiliar para o Dijkstra retornar as distâncias e o caminho rastreado
+    private class RetornoDijkstra {
+        double[] distancias;
+        int[] anteriores; // Guarda o "pai" de cada vértice para desenhar a rota
+        public RetornoDijkstra(double[] d, int[] a) { this.distancias = d; this.anteriores = a; }
+    }
+
+    // Motor Base: Algoritmo de Dijkstra com rastreamento de rota
+    private RetornoDijkstra calcularDistancias(int origem) {
+        double[] dist = new double[capacidadeAtual];
+        int[] anterior = new int[capacidadeAtual];
+        boolean[] fixo = new boolean[capacidadeAtual];
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            dist[i] = Double.MAX_VALUE;
+            anterior[i] = -1; // -1 significa que ainda não tem "pai"
+        }
+        dist[origem] = 0;
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            int u = -1;
+            for (int j = 0; j < capacidadeAtual; j++) {
+                if (vetorVertices[j] != null && !fixo[j] && (u == -1 || dist[j] < dist[u])) {
+                    u = j;
+                }
+            }
+
+            if (u == -1 || dist[u] == Double.MAX_VALUE) break;
+            fixo[u] = true;
+
+            Aresta atual = vetorVertices[u].inicioLista;
+            while (atual != null) {
+                if (dist[u] + atual.custo < dist[atual.idDestino]) {
+                    dist[atual.idDestino] = dist[u] + atual.custo;
+                    anterior[atual.idDestino] = u; // ANOTAÇÃO DA ROTA: Salva de onde viemos!
+                }
+                atual = atual.proxima;
+            }
+        }
+        return new RetornoDijkstra(dist, anterior);
+    }
+
+    // QUESTÃO 12: Excentricidade de um vértice v
+    public double calcularExcentricidade(int v) {
+        if (v >= capacidadeAtual || vetorVertices[v] == null) return -1;
+        RetornoDijkstra dijkstra = calcularDistancias(v);
+        double max = 0;
+        for (double d : dijkstra.distancias) {
+            if (d != Double.MAX_VALUE && d > max) max = d;
+        }
+        return max;
+    }
+
+    // QUESTÃO 13: Raio, Diâmetro e Centro
+    public void calcularMetricasGlobais() {
+        int n = contarVerticesAtivos();
+        if (n == 0) return;
+
+        double[] excentricidades = new double[capacidadeAtual];
+        double raio = Double.MAX_VALUE;
+        double diametro = 0;
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                excentricidades[i] = calcularExcentricidade(i);
+                if (excentricidades[i] < raio) raio = excentricidades[i];
+                if (excentricidades[i] > diametro) diametro = excentricidades[i];
+            }
+        }
+
+        System.out.println("\n>>> MÉTRICAS TOTAIS DO GRAFO <<<");
+        System.out.println("Raio: " + raio);
+        System.out.println("Diâmetro: " + diametro);
+        System.out.print("Centro (Vértices com excentricidade = Raio): ");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && excentricidades[i] == raio) {
+                System.out.print("V" + i + " ");
+            }
+        }
+        System.out.println("\n");
+    }
+
+    // QUESTÃO 11: Cintura e Circunferência (Com visualização de caminho)
+    public void calcularCinturaECircunferencia() {
+        double cintura = Double.MAX_VALUE;
+        double circunferencia = 0;
+        String caminhoCintura = "Nenhum";
+        String caminhoCircunferencia = "Nenhum";
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    double custoOriginal = atual.custo;
+                    int destino = atual.idDestino;
+
+                    // ---> ADICIONE ESTAS 4 LINHAS AQUI <---
+                    // Ignora "Self-loops" (Vértice apontando para ele mesmo)
+                    // para forçar a busca por um ciclo real no mapa.
+                    if (i == destino) {
+                        atual = atual.proxima;
+                        continue;
+                    }
+
+                    // "Remove" temporariamente a aresta e recalcula rotas
+                    atual.custo = Double.MAX_VALUE;
+                    RetornoDijkstra dijkstra = calcularDistancias(i);
+
+                    // Se ainda existe um caminho para voltar, formamos um ciclo!
+                    if (dijkstra.distancias[destino] != Double.MAX_VALUE) {
+                        double ciclo = dijkstra.distancias[destino] + custoOriginal;
+
+                        // Monta o texto do caminho rastreando os "pais"
+                        String caminhoAtual = montarCaminhoCiclo(i, destino, dijkstra.anteriores);
+
+                        if (ciclo < cintura) {
+                            cintura = ciclo;
+                            caminhoCintura = caminhoAtual;
+                        }
+                        if (ciclo > circunferencia) {
+                            circunferencia = ciclo;
+                            caminhoCircunferencia = caminhoAtual;
+                        }
+                    }
+
+                    atual.custo = custoOriginal; // Restaura a aresta
+                    atual = atual.proxima;
+                }
+            }
+        }
+
+        System.out.println("\n>>> CICLOS DO GRAFO <<<");
+        if (cintura == Double.MAX_VALUE) {
+            System.out.println("O grafo não possui ciclos válidos (é um grafo acíclico).");
+        } else {
+            System.out.println("Cintura (Menor Ciclo): " + cintura);
+            System.out.println(" -> Caminho da Cintura: " + caminhoCintura);
+            System.out.println("Circunferência (Maior Ciclo): " + circunferencia);
+            System.out.println(" -> Caminho da Circunferência: " + caminhoCircunferencia);
+        }
+    }
+
+    // Metodo auxiliar para transformar o vetor de "pais" em uma String legível
+    private String montarCaminhoCiclo(int origem, int destino, int[] anteriores) {
+        String caminho = "V" + origem;
+        int atual = destino;
+        String caminhoInvertido = "";
+
+        // Rastreia de trás para frente, do destino até a origem
+        while (atual != -1 && atual != origem) {
+            caminhoInvertido = " -> V" + atual + caminhoInvertido;
+            atual = anteriores[atual];
+        }
+
+        // Retorna a rota completa fechando o círculo
+        return caminho + caminhoInvertido + " -> V" + origem;
+    }
+
+
 
 
 

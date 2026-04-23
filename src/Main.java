@@ -28,6 +28,9 @@ public class Main {
             System.out.println("7. Preenchimento Automático");
             System.out.println("----------------------------------------");
             System.out.println("8.  [Q8]  Gerar Subgrafo Maximal Árvore (Kruskal)"); // <-- NOVA OPÇÃO AQUI
+            System.out.println("11. [Q11] Calcular Cintura e Circunferência");
+            System.out.println("12. [Q12] Calcular Excentricidade de um Vértice");
+            System.out.println("13. [Q13] Calcular Raio, Diâmetro e Centro");
             System.out.println("16. [Q6]  Executar Travessia In-Order");
             System.out.println("17. [Q7]  Executar Travessia Pos-Order (DFS)");
             System.out.println("18. [Q18] Executar Travessia BFS (Kahn)");
@@ -108,6 +111,21 @@ public class Main {
                         System.out.println("\n--- EXECUTANDO QUESTÃO 8 NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.subgrafoMaximalArvore();
                         break;
+
+
+                    case 11:
+                        grafoAtual.calcularCinturaECircunferencia();
+                        break;
+                    case 12:
+                        System.out.print("Digite o ID do vértice para calcular excentricidade: ");
+                        int vExc = scanner.nextInt();
+                        double exc = grafoAtual.calcularExcentricidade(vExc);
+                        System.out.println("Excentricidade do V" + vExc + ": " + (exc == -1 ? "Vértice inválido" : exc));
+                        break;
+                    case 13:
+                        grafoAtual.calcularMetricasGlobais();
+                        break;
+
 
 
                     case 99: // ALTERNAR GRAFO

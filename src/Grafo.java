@@ -854,6 +854,206 @@ public class Grafo {
     }
 
 
+    // =========================================================================
+    // QUESTÃO 14: CORTES EM VÉRTICES (ARTICULAÇÕES) E ARESTAS (PONTES)
+    // =========================================================================
+    private int tempoDFS = 0;
+
+    public void calcularCortes() {
+        if (capacidadeAtual == 0) return;
+
+        boolean[] visitado = new boolean[capacidadeAtual];
+        int[] desc = new int[capacidadeAtual]; // Tempo de descoberta
+        int[] low = new int[capacidadeAtual];  // Menor tempo alcançável
+        int[] pai = new int[capacidadeAtual];
+        boolean[] isArticulacao = new boolean[capacidadeAtual];
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            pai[i] = -1;
+        }
+
+        tempoDFS = 0;
+        System.out.println("\n>>> ANÁLISE DE VULNERABILIDADE (CORTES) <<<");
+        System.out.println("[Arestas de Corte / Pontes]:");
+        boolean temPonte = false;
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && !visitado[i]) {
+                if (tarjanCortesRecursivo(i, visitado, desc, low, pai, isArticulacao)) {
+                    temPonte = true;
+                }
+            }
+        }
+
+        if (!temPonte) System.out.println(" -> Nenhuma ponte encontrada. O grafo é resistente a falhas de arestas simples.");
+
+        System.out.println("\n[Vértices de Corte / Articulações]:");
+        boolean temArticulacao = false;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (isArticulacao[i]) {
+                System.out.println(" -> V" + i + " (" + vetorVertices[i].caracteristica + ") é vital. Removê-lo divide o grafo.");
+                temArticulacao = true;
+            }
+        }
+        if (!temArticulacao) System.out.println(" -> Nenhuma articulação encontrada.");
+    }
+
+    private boolean tarjanCortesRecursivo(int u, boolean[] visitado, int[] desc, int[] low, int[] pai, boolean[] isArticulacao) {
+        visitado[u] = true;
+        desc[u] = low[u] = ++tempoDFS;
+        int filhos = 0;
+        boolean encontrouPonte = false;
+
+        Aresta atual = vetorVertices[u].inicioLista;
+        while (atual != null) {
+            int v = atual.idDestino;
+            if (vetorVertices[v] != null) {
+                if (!visitado[v]) {
+                    filhos++;
+                    pai[v] = u;
+                    if (tarjanCortesRecursivo(v, visitado, desc, low, pai, isArticulacao)) encontrouPonte = true;
+
+                    low[u] = Math.min(low[u], low[v]);
+
+                    // Regra da Articulação 1: Não é raiz e o filho não alcança ninguém acima
+                    if (pai[u] != -1 && low[v] >= desc[u]) isArticulacao[u] = true;
+
+                    // Regra da Ponte: O filho não alcança NINGUÉM acima ou igual a u
+                    if (low[v] > desc[u]) {
+                        System.out.println(" -> Ponte encontrada: V" + u + " --- V" + v);
+                        encontrouPonte = true;
+                    }
+                } else if (v != pai[u]) {
+                    // Aresta de retorno (Back-edge)
+                    low[u] = Math.min(low[u], desc[v]);
+                }
+            }
+            atual = atual.proxima;
+        }
+
+        // Regra da Articulação 2: Raiz da DFS com 2 ou mais filhos independentes
+        if (pai[u] == -1 && filhos > 1) isArticulacao[u] = true;
+
+        return encontrouPonte;
+    }
+
+    // =========================================================================
+    // QUESTÃO 15: CORTE FUNDAMENTAL
+    // =========================================================================
+    public void calcularCorteFundamental() {
+        System.out.println("\n>>> CORTE FUNDAMENTAL <<<");
+        int raiz = -1;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) { raiz = i; break; }
+        }
+        if (raiz == -1) return;
+
+        // 1. Cria uma árvore geradora simples usando Busca em Largura (BFS)
+        boolean[] visitado = new boolean[capacidadeAtual];
+        int[] pai = new int[capacidadeAtual];
+        for(int i=0; i<capacidadeAtual; i++) pai[i] = -1;
+
+        int[] fila = new int[capacidadeAtual];
+        int inicio = 0, fim = 0;
+
+        visitado[raiz] = true;
+        fila[fim++] = raiz;
+
+        int arestaTreeOrigem = -1;
+        int arestaTreeDestino = -1;
+
+        while (inicio < fim) {
+            int u = fila[inicio++];
+            Aresta atual = vetorVertices[u].inicioLista;
+            while (atual != null) {
+                int v = atual.idDestino;
+                if (vetorVertices[v] != null && !visitado[v]) {
+                    visitado[v] = true;
+                    pai[v] = u;
+                    fila[fim++] = v;
+                    // Pegamos a PRIMEIRA aresta da árvore para demonstrar o corte fundamental
+                    if (arestaTreeOrigem == -1) {
+                        arestaTreeOrigem = u;
+                        arestaTreeDestino = v;
+                    }
+                }
+                atual = atual.proxima;
+            }
+        }
+
+        if (arestaTreeOrigem == -1) {
+            System.out.println("O grafo não possui arestas suficientes para formar cortes.");
+            return;
+        }
+
+        System.out.println("1. Aresta da Árvore selecionada: V" + arestaTreeOrigem + " --- V" + arestaTreeDestino);
+
+        // 2. Divide a árvore: Quem fica do lado do Destino? (Usamos DFS a partir do destino, ignorando a origem)
+        boolean[] ladoB = new boolean[capacidadeAtual];
+        marcarComponente(arestaTreeDestino, arestaTreeOrigem, pai, ladoB);
+
+        System.out.println("2. O conjunto do Corte Fundamental contém as seguintes arestas no grafo original:");
+        // 3. O Corte Fundamental são todas as arestas do grafo original que ligam o Lado A ao Lado B
+        int contCorte = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && !ladoB[i]) { // Se está no Lado A
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    int v = atual.idDestino;
+                    if (vetorVertices[v] != null && ladoB[v]) { // E aponta para o Lado B
+                        System.out.println(" -> [Corte] V" + i + " --- V" + v + " (Custo: " + atual.custo + ")");
+                        contCorte++;
+                    }
+                    atual = atual.proxima;
+                }
+            }
+        }
+        System.out.println(" -> Total de arestas no Corte Fundamental: " + contCorte);
+    }
+
+    private void marcarComponente(int u, int ignorar, int[] paiDaArvore, boolean[] conjunto) {
+        conjunto[u] = true;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (paiDaArvore[i] == u && i != ignorar) {
+                marcarComponente(i, ignorar, paiDaArvore, conjunto);
+            }
+        }
+    }
+
+    // =========================================================================
+    // QUESTÃO 16: VERIFICAÇÃO DE PLANARIDADE (Heurística de Euler)
+    // =========================================================================
+    public void verificarPlanaridade() {
+        int v = contarVerticesAtivos();
+        int e = contarArestasTotais() / 2; // Divide por 2 assumindo conexões bidirecionais lógicas
+
+        System.out.println("\n>>> TESTE DE PLANARIDADE <<<");
+        System.out.println("Vértices (V): " + v);
+        System.out.println("Arestas  (E): " + e);
+
+        if (v < 3) {
+            System.out.println("Resultado: É PLANAR (Trivialmente, pois tem menos de 3 vértices).");
+            return;
+        }
+
+        // Teorema de Euler: E <= 3V - 6 para grafos planares
+        int limiteEuler = (3 * v) - 6;
+        System.out.println("Limite de Arestas pela Fórmula de Euler (3V - 6): " + limiteEuler);
+
+        if (e > limiteEuler) {
+            System.out.println(">>> Resultado: NÃO É PLANAR!");
+            System.out.println("Motivo: Ele possui " + e + " arestas, o que excede o limite máximo (" + limiteEuler + ") para ser desenhado sem cruzamentos no papel.");
+        } else {
+            System.out.println(">>> Resultado: PROVAVELMENTE PLANAR.");
+            System.out.println("Motivo: Ele respeita a desigualdade de Euler. (Nota acadêmica: A prova definitiva exigiria o Teorema de Kuratowski procurando subgrafos K5 ou K3,3).");
+        }
+    }
+
+
+
+
+
+
 
 
 

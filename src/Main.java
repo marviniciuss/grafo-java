@@ -31,9 +31,12 @@ public class Main {
             System.out.println("11. [Q11] Calcular Cintura e Circunferência");
             System.out.println("12. [Q12] Calcular Excentricidade de um Vértice");
             System.out.println("13. [Q13] Calcular Raio, Diâmetro e Centro");
-            System.out.println("16. [Q6]  Executar Travessia In-Order");
-            System.out.println("17. [Q7]  Executar Travessia Pos-Order (DFS)");
-            System.out.println("18. [Q18] Executar Travessia BFS (Kahn)");
+            System.out.println("14. [Q14] Achar Cortes (Pontes e Articulações)");
+            System.out.println("15. [Q15] Mostrar Corte Fundamental");
+            System.out.println("16. [Q16] Verificar Planaridade (Euler)");
+            System.out.println("17. [Q6]  Executar Travessia In-Order");
+            System.out.println("18. [Q7]  Executar Travessia Pos-Order (DFS)");
+            System.out.println("19. [Q18] Executar Travessia BFS (Kahn)");
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -126,8 +129,18 @@ public class Main {
                         grafoAtual.calcularMetricasGlobais();
                         break;
 
-
-
+                    case 14:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 14 NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.calcularCortes();
+                        break;
+                    case 15:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 15 NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.calcularCorteFundamental();
+                        break;
+                    case 16:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 16 NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.verificarPlanaridade();
+                        break;
                     case 99: // ALTERNAR GRAFO
                         indiceAtivo = (indiceAtivo == 0) ? 1 : 0;
                         System.out.println(">> Você agora está editando o G" + (indiceAtivo + 1));
@@ -152,17 +165,17 @@ public class Main {
                         ambienteGrafos[0].calcularSimilaridade(ambienteGrafos[1]);
                         break;
 
-                    case 16:
+                    case 17:
                         System.out.println("\n--- EXECUTANDO QUESTÃO 6 (IN-ORDER) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.travessiaInOrdem();
                         break;
 
-                    case 17:
+                    case 18:
                         System.out.println("\n--- EXECUTANDO QUESTÃO 7 (POS-ORDER) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.travessiaPosOrdem();
                         break;
 
-                    case 18:
+                    case 19:
                         System.out.println("\n--- EXECUTANDO QUESTÃO 18 (BFS) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.bfsOrdenacaoTopologica();
                         break;

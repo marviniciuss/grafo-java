@@ -1050,6 +1050,198 @@ public class Grafo {
     }
 
 
+    // =========================================================================
+    // QUESTÃO 04: GERADOR DE CENÁRIO (20 Vértices, 35 Arestas, Conexo)
+    // =========================================================================
+    public void gerarCenarioQ4() {
+        destruirGrafo(); // Reseta o grafo atual
+        this.capacidadeAtual = 20;
+        this.vetorVertices = new Vertice[20];
+
+        // 1. Cria os 20 vértices
+        for (int i = 0; i < 20; i++) {
+            incluirVertice(i, "V_Q4_" + i);
+        }
+
+        java.util.Random rand = new java.util.Random();
+        int arestasAdicionadas = 0;
+
+        // 2. Garante que é conexo ligando V0-V1, V1-V2... V18-V19 (19 arestas)
+        for (int i = 0; i < 19; i++) {
+            double custo = Math.round((rand.nextDouble() * 90 + 10) * 10.0) / 10.0;
+            incluirArestaBilateral(i, i + 1, custo, "Conexao_Base");
+            arestasAdicionadas++;
+        }
+
+        // 3. Adiciona as 16 arestas restantes aleatoriamente
+        while (arestasAdicionadas < 35) {
+            int u = rand.nextInt(20);
+            int v = rand.nextInt(20);
+            // Evita loops (u para u) e evita duplicar arestas que já existem
+            if (u != v && !buscarAresta(u, v)) {
+                double custo = Math.round((rand.nextDouble() * 90 + 10) * 10.0) / 10.0;
+                incluirArestaBilateral(u, v, custo, "Conexao_Extra");
+                arestasAdicionadas++;
+            }
+        }
+        System.out.println("[!] Grafo Q4 gerado com 20 vértices e " + arestasAdicionadas + " arestas (bilaterais).");
+    }
+
+    // Metodo auxiliar para inserir arestas nos dois sentidos (Grafo Não-Direcionado)
+    private void incluirArestaBilateral(int u, int v, double custo, String carac) {
+        incluirAresta(u, v, custo, carac);
+        incluirAresta(v, u, custo, carac);
+    }
+
+
+    // =========================================================================
+    // QUESTÃO 04 (C): ALGORITMO DE PRIM
+    // =========================================================================
+    public void agmPrim() {
+        if (vetorVertices == null || capacidadeAtual == 0) return;
+
+        double[] chave = new double[capacidadeAtual];
+        int[] pai = new int[capacidadeAtual];
+        boolean[] naArvore = new boolean[capacidadeAtual];
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            chave[i] = Double.MAX_VALUE;
+            pai[i] = -1;
+        }
+
+        // Pega o primeiro vértice ativo que encontrar para ser a raiz
+        int raiz = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) { raiz = i; break; }
+        }
+
+        chave[raiz] = 0;
+        double custoTotal = 0;
+
+        System.out.println("\n[Construindo AGM - Algoritmo de PRIM]");
+
+        for (int count = 0; count < contarVerticesAtivos(); count++) {
+            // 1. Extrai o vértice mais barato que ainda não está na árvore
+            int u = -1;
+            for (int i = 0; i < capacidadeAtual; i++) {
+                if (vetorVertices[i] != null && !naArvore[i]) {
+                    if (u == -1 || chave[i] < chave[u]) {
+                        u = i;
+                    }
+                }
+            }
+
+            if (u == -1 || chave[u] == Double.MAX_VALUE) break; // Trava de segurança (desconexo)
+
+            // 2. Coloca na árvore
+            naArvore[u] = true;
+
+            if (pai[u] != -1) {
+                System.out.println(" -> Adicionada: V" + pai[u] + " --(Custo: " + chave[u] + ")--> V" + u);
+                custoTotal += chave[u];
+            }
+
+            // 3. Atualiza os vizinhos da borda
+            Aresta atual = vetorVertices[u].inicioLista;
+            while (atual != null) {
+                int v = atual.idDestino;
+                // Diferença principal pro Dijkstra: avalia apenas 'atual.custo', e não 'dist[u] + custo'
+                if (!naArvore[v] && atual.custo < chave[v]) {
+                    pai[v] = u;
+                    chave[v] = atual.custo;
+                }
+                atual = atual.proxima;
+            }
+        }
+        System.out.println("=========================================");
+        System.out.println("Custo Total da Árvore (Prim): " + Math.round(custoTotal * 100.0) / 100.0);
+        System.out.println("=========================================\n");
+    }
+
+
+    // =========================================================================
+    // QUESTÃO 04 (B): ALGORITMO DE BORUVKA
+    // =========================================================================
+    // Mini-classe para guardar as arestas mais baratas de cada componente
+    private class ArestaSimples {
+        int origem, destino; double custo;
+        ArestaSimples(int o, int d, double c) { this.origem = o; this.destino = d; this.custo = c; }
+    }
+
+    public void agmBoruvka() {
+        if (vetorVertices == null || capacidadeAtual == 0) return;
+
+        int[] pai = new int[capacidadeAtual];
+        for (int i = 0; i < capacidadeAtual; i++) pai[i] = i; // Union-Find inicial
+
+        int numComponentes = contarVerticesAtivos();
+        double custoTotal = 0.0;
+        ArestaSimples[] maisBarata = new ArestaSimples[capacidadeAtual];
+
+        System.out.println("\n[Construindo AGM - Algoritmo de BORUVKA]");
+
+        boolean mudou = true;
+        // Roda em O(log V) fases
+        while (numComponentes > 1 && mudou) {
+            mudou = false;
+
+            // Limpa as escolhas da iteração anterior
+            for (int i = 0; i < capacidadeAtual; i++) maisBarata[i] = null;
+
+            // 1. Varre o grafo inteiro buscando a melhor aresta de saída para cada componente
+            for (int u = 0; u < capacidadeAtual; u++) {
+                if (vetorVertices[u] == null) continue;
+
+                Aresta atual = vetorVertices[u].inicioLista;
+                while (atual != null) {
+                    int v = atual.idDestino;
+                    int raizU = encontrarRaiz(u, pai);
+                    int raizV = encontrarRaiz(v, pai);
+
+                    if (raizU != raizV) { // Se não forma ciclo
+                        if (maisBarata[raizU] == null || atual.custo < maisBarata[raizU].custo) {
+                            maisBarata[raizU] = new ArestaSimples(u, v, atual.custo);
+                        }
+                        if (maisBarata[raizV] == null || atual.custo < maisBarata[raizV].custo) {
+                            maisBarata[raizV] = new ArestaSimples(u, v, atual.custo);
+                        }
+                    }
+                    atual = atual.proxima;
+                }
+            }
+
+            // 2. Funde as componentes usando as arestas escolhidas
+            for (int i = 0; i < capacidadeAtual; i++) {
+                if (maisBarata[i] != null) {
+                    int raizOrigem = encontrarRaiz(maisBarata[i].origem, pai);
+                    int raizDestino = encontrarRaiz(maisBarata[i].destino, pai);
+
+                    if (raizOrigem != raizDestino) {
+                        pai[raizOrigem] = raizDestino; // Une os conjuntos
+                        custoTotal += maisBarata[i].custo;
+                        System.out.println(" -> Adicionada: V" + maisBarata[i].origem + " --(Custo: " + maisBarata[i].custo + ")--> V" + maisBarata[i].destino);
+                        numComponentes--;
+                        mudou = true;
+                    }
+                }
+            }
+        }
+        System.out.println("=========================================");
+        System.out.println("Custo Total da Árvore (Boruvka): " + Math.round(custoTotal * 100.0) / 100.0);
+        System.out.println("=========================================\n");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -37,6 +37,9 @@ public class Main {
             System.out.println("17. [Q6]  Executar Travessia In-Order");
             System.out.println("18. [Q7]  Executar Travessia Pos-Order (DFS)");
             System.out.println("19. [Q18] Executar Travessia BFS (Kahn)");
+            System.out.println("20. [Q4]  Gerar Cenário (20 Vértices, 35 Arestas)");
+            System.out.println("21. [Q4]  Executar AGM (Prim)");
+            System.out.println("22. [Q4]  Executar AGM (Boruvka)");
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -178,6 +181,16 @@ public class Main {
                     case 19:
                         System.out.println("\n--- EXECUTANDO QUESTÃO 18 (BFS) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.bfsOrdenacaoTopologica();
+                        break;
+
+                    case 20:
+                        grafoAtual.gerarCenarioQ4();
+                        break;
+                    case 21:
+                        grafoAtual.agmPrim();
+                        break;
+                    case 22:
+                        grafoAtual.agmBoruvka();
                         break;
 
                     case 0:

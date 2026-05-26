@@ -1,5 +1,7 @@
 import java.util.Scanner;
 import java.util.InputMismatchException;
+import java.util.Deque;
+import java.util.LinkedList;
 
 public class Main {
     public static void main(String[] args) {
@@ -40,6 +42,11 @@ public class Main {
             System.out.println("20. [Q4]  Gerar Cenário (20 Vértices, 35 Arestas)");
             System.out.println("21. [Q4]  Executar AGM (Prim)");
             System.out.println("22. [Q4]  Executar AGM (Boruvka)");
+            System.out.println("23. [Q9-A] Executar Dijkstra (Tabela)");
+            System.out.println("24. [Q9-B] Executar MB-DP (Fila Dupla)");
+            System.out.println("25. [Q9-C] Executar Threshold (Limiar)");
+            System.out.println("26. [Q9-D] Executar Floyd-Warshall (Todos para Todos)");
+
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -192,6 +199,32 @@ public class Main {
                     case 22:
                         grafoAtual.agmBoruvka();
                         break;
+                    case 23:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 9-A (DIJKSTRA) NO G" + (indiceAtivo + 1) + " ---");
+                        System.out.print("Digite o ID do vértice de origem: ");
+                        int oDijkstra = scanner.nextInt();
+                        grafoAtual.executarDijkstraQ9(oDijkstra);
+                        break;
+
+                    case 24:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 9-B (MB-DP) NO G" + (indiceAtivo + 1) + " ---");
+                        System.out.print("Digite o ID do vértice de origem: ");
+                        int oMB = scanner.nextInt();
+                        grafoAtual.executarMB_DP(oMB);
+                        break;
+
+                    case 25:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 9-C (THRESHOLD) NO G" + (indiceAtivo + 1) + " ---");
+                        System.out.print("Digite o ID do vértice de origem: ");
+                        int oThresh = scanner.nextInt();
+                        grafoAtual.executarThreshold(oThresh);
+                        break;
+
+                    case 26:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 9-D (FLOYD-WARSHALL) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.executarFloydWarshall();
+                        break;
+                    // ------------------------------------------
 
                     case 0:
                         System.out.println("Encerrando...");

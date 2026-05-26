@@ -1235,7 +1235,211 @@ public class Grafo {
 
 
 
+// =========================================================================
+    // QUESTÃO 09: CAMINHOS MÍNIMOS (DIJKSTRA, MB-DP, THRESHOLD, FLOYD-WARSHALL)
+    // =========================================================================
 
+    // Metodo auxiliar para imprimir a "Matriz" (Tabela) de Valores e Caminhos de 1 Origem
+    private void imprimirTabelaCaminhos(int origem, double[] dist, int[] pai, String nomeAlgoritmo) {
+        System.out.println("\n>>> Tabela de Caminhos Mínimos a partir de V" + origem + " (" + nomeAlgoritmo + ") <<<");
+        System.out.printf("%-10s | %-12s | %-30s%n", "Destino", "Custo Total", "Caminho (Rotas)");
+        System.out.println("---------------------------------------------------------------");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && i != origem) {
+                if (dist[i] == Double.MAX_VALUE) {
+                    System.out.printf("V%-9d | %-12s | %-30s%n", i, "Inalcançável", "-");
+                } else {
+                    String caminho = montarCaminhoCiclo(origem, i, pai); // Reaproveitando seu método
+                    System.out.printf("V%-9d | %-12.2f | %-30s%n", i, dist[i], caminho);
+                }
+            }
+        }
+        System.out.println("---------------------------------------------------------------\n");
+    }
+
+    // ---------------------------------------------------------
+    // 9.A - DIJKSTRA (Label Setting)
+    // ---------------------------------------------------------
+    public void executarDijkstraQ9(int origem) {
+        if (vetorVertices[origem] == null) return;
+        RetornoDijkstra resultado = calcularDistancias(origem); // Reaproveita o Dijkstra puro que você já fez na Q11
+        imprimirTabelaCaminhos(origem, resultado.distancias, resultado.anteriores, "Dijkstra");
+    }
+
+    // ---------------------------------------------------------
+    // 9.B - MOORE, BELLMAN-D'ESOPO, PAPE (MB-DP)
+    // ---------------------------------------------------------
+    public void executarMB_DP(int origem) {
+        if (vetorVertices[origem] == null) return;
+
+        double[] dist = new double[capacidadeAtual];
+        int[] pai = new int[capacidadeAtual];
+        int[] status = new int[capacidadeAtual];
+        // Status: 0 = Nunca entrou na fila, 1 = Está na fila agora, 2 = Já foi retirado da fila
+
+        for (int i = 0; i < capacidadeAtual; i++) {
+            dist[i] = Double.MAX_VALUE;
+            pai[i] = -1;
+            status[i] = 0;
+        }
+
+        dist[origem] = 0;
+        java.util.Deque<Integer> deque = new java.util.LinkedList<>();
+        deque.addLast(origem);
+        status[origem] = 1;
+
+        while (!deque.isEmpty()) {
+            int u = deque.removeFirst();
+            status[u] = 2; // Removido da fila
+
+            Aresta atual = vetorVertices[u].inicioLista;
+            while (atual != null) {
+                int v = atual.idDestino;
+                if (dist[u] + atual.custo < dist[v]) {
+                    dist[v] = dist[u] + atual.custo;
+                    pai[v] = u;
+
+                    if (status[v] == 0) {
+                        // Descoberto pela 1ª vez: vai pro FIM
+                        deque.addLast(v);
+                        status[v] = 1;
+                    } else if (status[v] == 2) {
+                        // Corrigido (já tinha sido visitado): vai pro INÍCIO para corrigir a cascata rápido
+                        deque.addFirst(v);
+                        status[v] = 1;
+                    }
+                }
+                atual = atual.proxima;
+            }
+        }
+        imprimirTabelaCaminhos(origem, dist, pai, "Moore, Bellman-D'Esopo, Pape");
+    }
+
+    // ---------------------------------------------------------
+    // 9.C - THRESHOLD (Glover, Klingman, Phillips) - Abordagem NOW/NEXT
+    // ---------------------------------------------------------
+    public void executarThreshold(int origem) {
+        if (vetorVertices[origem] == null) return;
+
+        double[] dist = new double[capacidadeAtual];
+        int[] pai = new int[capacidadeAtual];
+        for (int i = 0; i < capacidadeAtual; i++) {
+            dist[i] = Double.MAX_VALUE;
+            pai[i] = -1;
+        }
+        dist[origem] = 0;
+
+        java.util.List<Integer> filaNow = new java.util.LinkedList<>();
+        java.util.List<Integer> filaNext = new java.util.LinkedList<>();
+
+        filaNow.add(origem);
+
+        while (!filaNow.isEmpty() || !filaNext.isEmpty()) {
+            if (filaNow.isEmpty()) {
+                // Calcula o Threshold (Limiar). Vamos usar o custo mínimo em NEXT + média das distâncias
+                double minNext = Double.MAX_VALUE;
+                double soma = 0;
+                for (int v : filaNext) {
+                    if (dist[v] < minNext) minNext = dist[v];
+                    soma += dist[v];
+                }
+                double media = soma / filaNext.size();
+                double threshold = minNext + (media - minNext) * 0.5; // Fator de corte
+
+                // Move de NEXT para NOW os vértices abaixo do limiar
+                java.util.Iterator<Integer> it = filaNext.iterator();
+                while (it.hasNext()) {
+                    int v = it.next();
+                    if (dist[v] <= threshold) {
+                        filaNow.add(v);
+                        it.remove();
+                    }
+                }
+            }
+
+            int u = filaNow.remove(0); // Remove do início do NOW
+            Aresta atual = vetorVertices[u].inicioLista;
+            while (atual != null) {
+                int v = atual.idDestino;
+                if (dist[u] + atual.custo < dist[v]) {
+                    dist[v] = dist[u] + atual.custo;
+                    pai[v] = u;
+
+                    // Se não está em nenhuma das listas, adiciona à NEXT
+                    if (!filaNow.contains(v) && !filaNext.contains(v)) {
+                        filaNext.add(v);
+                    }
+                }
+                atual = atual.proxima;
+            }
+        }
+        imprimirTabelaCaminhos(origem, dist, pai, "Threshold - G.K.P.");
+    }
+
+    // ---------------------------------------------------------
+    // 9.D - FLOYD-WARSHALL (Todos para Todos)
+    // ---------------------------------------------------------
+    public void executarFloydWarshall() {
+        int n = capacidadeAtual;
+        double[][] dist = new double[n][n];
+        int[][] pai = new int[n][n];
+
+        // 1. Inicializa a matriz O(V^2)
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                dist[i][j] = Double.MAX_VALUE;
+                pai[i][j] = -1;
+            }
+            dist[i][i] = 0; // Distância para si mesmo é 0
+
+            if (vetorVertices[i] != null) {
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null) {
+                    dist[i][atual.idDestino] = atual.custo;
+                    pai[i][atual.idDestino] = i;
+                    atual = atual.proxima;
+                }
+            }
+        }
+
+        // 2. Os três loops aninhados mágicos O(V^3)
+        System.out.println("\n[Processando Floyd-Warshall...]");
+        for (int k = 0; k < n; k++) {
+            if (vetorVertices[k] == null) continue;
+            for (int i = 0; i < n; i++) {
+                if (vetorVertices[i] == null || dist[i][k] == Double.MAX_VALUE) continue;
+                for (int j = 0; j < n; j++) {
+                    if (vetorVertices[j] == null || dist[k][j] == Double.MAX_VALUE) continue;
+
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        pai[i][j] = pai[k][j]; // Salva a rota
+                    }
+                }
+            }
+        }
+
+        // 3. Imprime a Matriz (Tabela) Resultante de Valores
+        System.out.println(">>> MATRIZ DE DISTÂNCIAS (FLOYD-WARSHALL) <<<");
+        System.out.print("Dest\\Orig | ");
+        for (int i = 0; i < n; i++) {
+            if (vetorVertices[i] != null) System.out.printf("V%-5d ", i);
+        }
+        System.out.println("\n---------------------------------------------------------");
+
+        for (int i = 0; i < n; i++) {
+            if (vetorVertices[i] == null) continue;
+            System.out.printf("   V%-5d | ", i);
+            for (int j = 0; j < n; j++) {
+                if (vetorVertices[j] == null) continue;
+
+                if (dist[i][j] == Double.MAX_VALUE) System.out.print("INF    ");
+                else System.out.printf("%-6.1f ", dist[i][j]);
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
 
 
 

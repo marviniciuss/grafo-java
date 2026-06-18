@@ -1441,20 +1441,318 @@ public class Grafo {
         System.out.println();
     }
 
+    // =========================================================================
+    // QUESTÃO 2 (AC03): REDES DE FLUXO E ALGORITMO GENÉRICO (EDMONDS-KARP)
+    // =========================================================================
 
+    private void prepararRedeFluxo() {
+        // 1. Reseta os fluxos das arestas existentes
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                Aresta e = vetorVertices[i].inicioLista;
+                while (e != null) {
+                    e.fluxo = 0.0;
+                    e.arestaReversa = null;
+                    e = e.proxima;
+                }
+            }
+        }
 
+        // 2. Coleta todas as arestas originais para evitar problemas ao modificar as listas durante o percurso
+        java.util.List<Aresta> arestasOriginais = new java.util.ArrayList<>();
+        java.util.List<Integer> origens = new java.util.ArrayList<>();
 
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                Aresta e = vetorVertices[i].inicioLista;
+                while (e != null) {
+                    if (!e.ehReversaProvisoria) {
+                        arestasOriginais.add(e);
+                        origens.add(i);
+                    }
+                    e = e.proxima;
+                }
+            }
+        }
 
+        // 3. Cria as arestas reversas provisórias com capacidade 0
+        for (int idx = 0; idx < arestasOriginais.size(); idx++) {
+            Aresta e = arestasOriginais.get(idx);
+            int origem = origens.get(idx);
+            int destino = e.idDestino;
 
+            if (e.arestaReversa == null) {
+                Aresta rev = new Aresta(origem, 0.0, "Reversa de " + e.caracteristica);
+                rev.ehReversaProvisoria = true;
 
+                // Insere no início da lista do destino
+                rev.proxima = vetorVertices[destino].inicioLista;
+                vetorVertices[destino].inicioLista = rev;
 
+                e.arestaReversa = rev;
+                rev.arestaReversa = e;
+            }
+        }
+    }
 
+    private void limparRedeFluxo() {
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                // Remove as arestas reversas provisórias da cabeça da lista
+                while (vetorVertices[i].inicioLista != null && vetorVertices[i].inicioLista.ehReversaProvisoria) {
+                    vetorVertices[i].inicioLista = vetorVertices[i].inicioLista.proxima;
+                }
+                // Remove do resto da lista
+                Aresta atual = vetorVertices[i].inicioLista;
+                while (atual != null && atual.proxima != null) {
+                    if (atual.proxima.ehReversaProvisoria) {
+                        atual.proxima = atual.proxima.proxima;
+                    } else {
+                        atual = atual.proxima;
+                    }
+                }
+                // Limpa as referências das arestas normais restantes
+                Aresta e = vetorVertices[i].inicioLista;
+                while (e != null) {
+                    e.fluxo = 0.0;
+                    e.arestaReversa = null;
+                    e = e.proxima;
+                }
+            }
+        }
+    }
 
+    private boolean buscarCaminhoAumentante(int s, int t, int[] paiVertice, Aresta[] paiAresta) {
+        boolean[] visitado = new boolean[capacidadeAtual];
+        int[] fila = new int[capacidadeAtual];
+        int inicio = 0, fim = 0;
 
+        visitado[s] = true;
+        fila[fim++] = s;
 
+        while (inicio < fim) {
+            int u = fila[inicio++];
+            if (u == t) return true;
 
+            Vertice vert = vetorVertices[u];
+            if (vert == null) continue;
 
+            Aresta e = vert.inicioLista;
+            while (e != null) {
+                int v = e.idDestino;
+                double capResidual = e.custo - e.fluxo;
 
+                if (vetorVertices[v] != null && !visitado[v] && capResidual > 0) {
+                    visitado[v] = true;
+                    paiVertice[v] = u;
+                    paiAresta[v] = e;
+                    fila[fim++] = v;
+                }
+                e = e.proxima;
+            }
+        }
+        return visitado[t];
+    }
 
+    public void executarFluxoMaximoQ2(int s, int t) {
+        if (s >= capacidadeAtual || vetorVertices[s] == null || t >= capacidadeAtual || vetorVertices[t] == null) {
+            System.out.println("[x] Erro: Vértice de origem ou destino inválido.");
+            return;
+        }
 
+        System.out.println("\n======================================================================");
+        System.out.println("   EXECUTANDO ALGORITMO GENÉRICO DE FLUXO MÁXIMO (EDMONDS-KARP)       ");
+        System.out.println("   Origem (s): V" + s + " (" + vetorVertices[s].caracteristica + ") | Destino (t): V" + t + " (" + vetorVertices[t].caracteristica + ")");
+        System.out.println("======================================================================");
+
+        prepararRedeFluxo();
+
+        int[] paiVertice = new int[capacidadeAtual];
+        Aresta[] paiAresta = new Aresta[capacidadeAtual];
+
+        double fluxoMaximo = 0;
+        int numIteracao = 1;
+
+        while (buscarCaminhoAumentante(s, t, paiVertice, paiAresta)) {
+            // 1. Encontra a capacidade residual gargalo ao longo do caminho
+            double gargalo = Double.MAX_VALUE;
+            int curr = t;
+            while (curr != s) {
+                Aresta e = paiAresta[curr];
+                double resCap = e.custo - e.fluxo;
+                if (resCap < gargalo) {
+                    gargalo = resCap;
+                }
+                curr = paiVertice[curr];
+            }
+
+            // 2. Imprime o caminho aumentante de forma didática
+            System.out.println("\n[Iteração #" + numIteracao + "] Encontrado caminho aumentante:");
+
+            int caminhoLen = 0;
+            int temp = t;
+            while (temp != s) {
+                caminhoLen++;
+                temp = paiVertice[temp];
+            }
+
+            int[] verticesCaminho = new int[caminhoLen + 1];
+            Aresta[] arestasCaminho = new Aresta[caminhoLen];
+            temp = t;
+            for (int i = caminhoLen; i > 0; i--) {
+                verticesCaminho[i] = temp;
+                arestasCaminho[i - 1] = paiAresta[temp];
+                temp = paiVertice[temp];
+            }
+            verticesCaminho[0] = s;
+
+            System.out.print("   Caminho: ");
+            for (int i = 0; i < caminhoLen; i++) {
+                int u = verticesCaminho[i];
+                Aresta e = arestasCaminho[i];
+                String tipo = e.ehReversaProvisoria ? "Reversa" : "Direta";
+                System.out.printf("V%d --(%s, cap: %.2f, fluxo: %.2f | residual: %.2f)--> ", 
+                    u, tipo, e.custo, e.fluxo, e.custo - e.fluxo);
+            }
+            System.out.println("V" + t);
+            System.out.printf("   >>> Gargalo do caminho (Fluxo a ser adicionado): %.2f%n", gargalo);
+
+            // 3. Aumenta o fluxo
+            curr = t;
+            while (curr != s) {
+                Aresta e = paiAresta[curr];
+                e.fluxo += gargalo;
+                e.arestaReversa.fluxo -= gargalo;
+                curr = paiVertice[curr];
+            }
+
+            fluxoMaximo += gargalo;
+            System.out.printf("   >>> Fluxo acumulado total na rede: %.2f%n", fluxoMaximo);
+            numIteracao++;
+        }
+
+        System.out.println("\n======================================================================");
+        System.out.printf("   Fluxo Máximo Total Alcançado: %.2f%n", fluxoMaximo);
+        System.out.println("======================================================================");
+
+        // ==========================================================
+        // CÁLCULO E EXIBIÇÃO DIDÁTICA DO CORTE MÍNIMO s-t
+        // ==========================================================
+        boolean[] alcansavelResidual = new boolean[capacidadeAtual];
+        marcarAlcanceResidual(s, alcansavelResidual);
+
+        System.out.println("\n>>> ANÁLISE DO CORTE MÍNIMO s-t (Teorema Max-Flow Min-Cut) <<<");
+
+        System.out.print("   Conjunto S (Lado da Fonte): { ");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && alcansavelResidual[i]) {
+                System.out.print("V" + i + " ");
+            }
+        }
+        System.out.println("}");
+
+        System.out.print("   Conjunto T (Lado do Sumidouro): { ");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && !alcansavelResidual[i]) {
+                System.out.print("V" + i + " ");
+            }
+        }
+        System.out.println("}");
+
+        double capacidadeCorteOriginal = 0;
+        double capacidadeCorteResidual = 0;
+
+        System.out.println("\nArestas que cruzam a fronteira do corte (de S para T):");
+        System.out.printf("   %-20s | %-12s | %-12s | %-12s%n", "Aresta (U -> V)", "Cap. Original", "Fluxo Final", "Cap. Residual");
+        System.out.println("   ---------------------------------------------------------------------");
+
+        for (int u = 0; u < capacidadeAtual; u++) {
+            if (vetorVertices[u] != null && alcansavelResidual[u]) {
+                Aresta e = vetorVertices[u].inicioLista;
+                while (e != null) {
+                    int v = e.idDestino;
+                    if (vetorVertices[v] != null && !alcansavelResidual[v] && !e.ehReversaProvisoria) {
+                        double capOriginal = e.custo;
+                        double fluxoFinal = e.fluxo;
+                        double capResidual = capOriginal - fluxoFinal;
+
+                        System.out.printf("   V%-2d -> V%-14d | %-12.2f | %-12.2f | %-12.2f%n", 
+                            u, v, capOriginal, fluxoFinal, capResidual);
+
+                        capacidadeCorteOriginal += capOriginal;
+                        capacidadeCorteResidual += capResidual;
+                    }
+                    e = e.proxima;
+                }
+            }
+        }
+
+        System.out.println("   ---------------------------------------------------------------------");
+        System.out.printf("   >>> Capacidade Total do Corte no Grafo Original (Min-Cut): %.2f%n", capacidadeCorteOriginal);
+        System.out.printf("   >>> Capacidade Residual Total do Corte no Grafo Residual:  %.2f%n", capacidadeCorteResidual);
+
+        System.out.println("\n>>> EXPLICAÇÃO DIDÁTICA DO CORTE:");
+        System.out.printf(" 1. O Fluxo Máximo de V%d para V%d é %.2f.%n", s, t, fluxoMaximo);
+        System.out.printf(" 2. A Capacidade do Corte Mínimo s-t correspondente é %.2f.%n", capacidadeCorteOriginal);
+        System.out.printf(" 3. Verificamos que o Fluxo Máximo (%.2f) = Capacidade do Corte Mínimo (%.2f).%n", fluxoMaximo, capacidadeCorteOriginal);
+        System.out.println("    Isso valida empiricamente o Teorema Max-Flow Min-Cut de Ford-Fulkerson!");
+        System.out.printf(" 4. A Capacidade Residual do corte é %.2f.%n", capacidadeCorteResidual);
+        System.out.println("    Como a capacidade residual é 0, o corte está completamente saturado (gargalo total).");
+        System.out.println("======================================================================\n");
+
+        limparRedeFluxo();
+    }
+
+    private void marcarAlcanceResidual(int u, boolean[] visitado) {
+        visitado[u] = true;
+        if (vetorVertices[u] == null) return;
+        Aresta e = vetorVertices[u].inicioLista;
+        while (e != null) {
+            int v = e.idDestino;
+            if (vetorVertices[v] != null && !visitado[v] && (e.custo - e.fluxo > 0)) {
+                marcarAlcanceResidual(v, visitado);
+            }
+            e = e.proxima;
+        }
+    }
+
+    public void gerarCenarioFluxoPadrao() {
+        destruirGrafo(); // Reseta o grafo atual
+        this.capacidadeAtual = 10;
+        this.vetorVertices = new Vertice[10];
+
+        // 1. Cria os 10 vértices de s (V0) a t (V9)
+        incluirVertice(0, "s (Fonte)");
+        for (int i = 1; i <= 8; i++) {
+            incluirVertice(i, "V" + i);
+        }
+        incluirVertice(9, "t (Sumidouro)");
+
+        // 2. Inclui arcos direcionados com capacidades (e algumas arestas paralelas para demonstrar multígrafo)
+        incluirAresta(0, 1, 10.0, "Caminho A1");
+        incluirAresta(0, 1, 5.0, "Caminho A2 (Paralelo)"); // Aresta paralela para multígrafo!
+        incluirAresta(0, 2, 15.0, "Caminho B");
+        
+        incluirAresta(1, 3, 9.0, "Caminho C");
+        incluirAresta(1, 4, 6.0, "Caminho D");
+        
+        incluirAresta(2, 4, 8.0, "Caminho E");
+        incluirAresta(2, 5, 10.0, "Caminho F");
+        
+        incluirAresta(3, 6, 10.0, "Caminho G");
+        
+        incluirAresta(4, 6, 6.0, "Caminho H1");
+        incluirAresta(4, 6, 4.0, "Caminho H2 (Paralelo)"); // Outra aresta paralela!
+        incluirAresta(4, 7, 7.0, "Caminho I");
+        
+        incluirAresta(5, 7, 12.0, "Caminho J");
+        
+        incluirAresta(6, 8, 6.0, "Caminho K");
+        incluirAresta(6, 9, 8.0, "Caminho L");
+        
+        incluirAresta(7, 9, 15.0, "Caminho M");
+        incluirAresta(8, 9, 10.0, "Caminho N");
+        
+        System.out.println("[!] Grafo de Fluxo Padrão gerado com 10 vértices e arcos direcionados (incluindo arestas paralelas para provar o suporte a multígrafos).");
+    }
 }

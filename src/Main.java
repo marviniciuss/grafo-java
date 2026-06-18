@@ -46,7 +46,8 @@ public class Main {
             System.out.println("24. [Q9-B] Executar MB-DP (Fila Dupla)");
             System.out.println("25. [Q9-C] Executar Threshold (Limiar)");
             System.out.println("26. [Q9-D] Executar Floyd-Warshall (Todos para Todos)");
-
+            System.out.println("27. [AC03-Q2] Executar Algoritmo de Fluxo Máximo (Edmonds-Karp)");
+            System.out.println("28. [AC03-Q2] Gerar Cenário de Fluxo Padrão (10 Vértices, Multígrafo)");
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -223,6 +224,20 @@ public class Main {
                     case 26:
                         System.out.println("\n--- EXECUTANDO QUESTÃO 9-D (FLOYD-WARSHALL) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.executarFloydWarshall();
+                        break;
+
+                    case 27:
+                        System.out.println("\n--- EXECUTANDO FLUXO MÁXIMO (EDMONDS-KARP) NO G" + (indiceAtivo + 1) + " ---");
+                        System.out.print("Digite o ID do vértice de origem (s): ");
+                        int sFlow = scanner.nextInt();
+                        System.out.print("Digite o ID do vértice de destino (t): ");
+                        int tFlow = scanner.nextInt();
+                        grafoAtual.executarFluxoMaximoQ2(sFlow, tFlow);
+                        break;
+
+                    case 28:
+                        System.out.println("\n--- GERANDO CENÁRIO DE FLUXO PADRÃO NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.gerarCenarioFluxoPadrao();
                         break;
                     // ------------------------------------------
 

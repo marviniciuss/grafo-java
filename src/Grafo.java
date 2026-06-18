@@ -1522,38 +1522,49 @@ public class Grafo {
         }
     }
 
+    // =========================================================================
+    // PROCEDIMENTO ROTULANTE (G, s, t) - Baseado nos slides do professor
+    // =========================================================================
+    // Utiliza busca em largura (BFS) com lista L (fila) e rotulo (visitado) para encontrar caminhos aumentantes
     private boolean buscarCaminhoAumentante(int s, int t, int[] paiVertice, Aresta[] paiAresta) {
-        boolean[] visitado = new boolean[capacidadeAtual];
-        int[] fila = new int[capacidadeAtual];
+        boolean[] rotulo = new boolean[capacidadeAtual]; // rotulo[j] := 1 se visitado
+        int[] pred = paiVertice; // pred[j] := i (antecessor)
+        
+        // Fila L (L := L U {j})
+        int[] L = new int[capacidadeAtual];
         int inicio = 0, fim = 0;
 
-        visitado[s] = true;
-        fila[fim++] = s;
+        rotulo[s] = true; // rotulo[s] := 1
+        L[fim++] = s; // L := {s}
 
-        while (inicio < fim) {
-            int u = fila[inicio++];
-            if (u == t) return true;
-
-            Vertice vert = vetorVertices[u];
+        while (inicio < fim && !rotulo[t]) {
+            int i = L[inicio++]; // L := L - {i}
+            
+            Vertice vert = vetorVertices[i];
             if (vert == null) continue;
 
+            // Para cada vizinho j de i no Grafo Residual
             Aresta e = vert.inicioLista;
             while (e != null) {
-                int v = e.idDestino;
-                double capResidual = e.custo - e.fluxo;
+                int j = e.idDestino;
+                double capResidual = e.custo - e.fluxo; // rij (capacidade residual)
 
-                if (vetorVertices[v] != null && !visitado[v] && capResidual > 0) {
-                    visitado[v] = true;
-                    paiVertice[v] = u;
-                    paiAresta[v] = e;
-                    fila[fim++] = v;
+                // Se não rotulado E existe capacidade residual (rij > 0)
+                if (vetorVertices[j] != null && !rotulo[j] && capResidual > 0) {
+                    pred[j] = i; // pred[j] := i
+                    paiAresta[j] = e; // guarda a aresta física para multígrafos
+                    rotulo[j] = true; // rotulo[j] := 1
+                    L[fim++] = j; // L := L U {j}
                 }
                 e = e.proxima;
             }
         }
-        return visitado[t];
+        return rotulo[t]; // Retorna se o sumidouro t foi rotulado
     }
 
+    // =========================================================================
+    // PROCEDIMENTO CAMINHO_AUMENTANTE (GR, s, t) & MÉTODO GENÉRICO DE FLUXO MÁXIMO
+    // =========================================================================
     public void executarFluxoMaximoQ2(int s, int t) {
         if (s >= capacidadeAtual || vetorVertices[s] == null || t >= capacidadeAtual || vetorVertices[t] == null) {
             System.out.println("[x] Erro: Vértice de origem ou destino inválido.");
@@ -1561,39 +1572,43 @@ public class Grafo {
         }
 
         System.out.println("\n======================================================================");
-        System.out.println("   EXECUTANDO ALGORITMO GENÉRICO DE FLUXO MÁXIMO (EDMONDS-KARP)       ");
+        System.out.println("   MÉTODO GENÉRICO DE FLUXO MÁXIMO & PROCEDIMENTO ROTULANTE            ");
         System.out.println("   Origem (s): V" + s + " (" + vetorVertices[s].caracteristica + ") | Destino (t): V" + t + " (" + vetorVertices[t].caracteristica + ")");
         System.out.println("======================================================================");
 
         prepararRedeFluxo();
 
-        int[] paiVertice = new int[capacidadeAtual];
+        int[] pred = new int[capacidadeAtual];
         Aresta[] paiAresta = new Aresta[capacidadeAtual];
 
-        double fluxoMaximo = 0;
+        double fluxoMaximo = 0; // f := 0
         int numIteracao = 1;
 
-        while (buscarCaminhoAumentante(s, t, paiVertice, paiAresta)) {
-            // 1. Encontra a capacidade residual gargalo ao longo do caminho
-            double gargalo = Double.MAX_VALUE;
+        // while GR contém um caminho direto de s-t (Procedimento Rotulante rotula t)
+        while (buscarCaminhoAumentante(s, t, pred, paiAresta)) {
+            // [Procedimento Caminho_Aumentante]
+            
+            // 1. Identifica a capacidade residual gargalo theta ao longo do caminho P
+            // theta = min{rij : ij em P}
+            double theta = Double.MAX_VALUE;
             int curr = t;
             while (curr != s) {
                 Aresta e = paiAresta[curr];
-                double resCap = e.custo - e.fluxo;
-                if (resCap < gargalo) {
-                    gargalo = resCap;
+                double rij = e.custo - e.fluxo;
+                if (rij < theta) {
+                    theta = rij;
                 }
-                curr = paiVertice[curr];
+                curr = pred[curr];
             }
 
             // 2. Imprime o caminho aumentante de forma didática
-            System.out.println("\n[Iteração #" + numIteracao + "] Encontrado caminho aumentante:");
+            System.out.println("\n[Iteração #" + numIteracao + "] Caminho Aumentante P encontrado pelo Procedimento Rotulante:");
 
             int caminhoLen = 0;
             int temp = t;
             while (temp != s) {
                 caminhoLen++;
-                temp = paiVertice[temp];
+                temp = pred[temp];
             }
 
             int[] verticesCaminho = new int[caminhoLen + 1];
@@ -1602,11 +1617,11 @@ public class Grafo {
             for (int i = caminhoLen; i > 0; i--) {
                 verticesCaminho[i] = temp;
                 arestasCaminho[i - 1] = paiAresta[temp];
-                temp = paiVertice[temp];
+                temp = pred[temp];
             }
             verticesCaminho[0] = s;
 
-            System.out.print("   Caminho: ");
+            System.out.print("   Caminho P: ");
             for (int i = 0; i < caminhoLen; i++) {
                 int u = verticesCaminho[i];
                 Aresta e = arestasCaminho[i];
@@ -1615,24 +1630,25 @@ public class Grafo {
                     u, tipo, e.custo, e.fluxo, e.custo - e.fluxo);
             }
             System.out.println("V" + t);
-            System.out.printf("   >>> Gargalo do caminho (Fluxo a ser adicionado): %.2f%n", gargalo);
+            System.out.printf("   >>> gargalo (theta) = min{rij} = %.2f%n", theta);
+            System.out.printf("   >>> [Caminho_Aumentante] Aumentando fluxo: f := f + %.2f%n", theta);
 
-            // 3. Aumenta o fluxo
+            // 3. Aumenta o fluxo ao longo de P (f := f + theta) e atualiza o Grafo Residual
             curr = t;
             while (curr != s) {
                 Aresta e = paiAresta[curr];
-                e.fluxo += gargalo;
-                e.arestaReversa.fluxo -= gargalo;
-                curr = paiVertice[curr];
+                e.fluxo += theta;
+                e.arestaReversa.fluxo -= theta; // rij = c_ij - f_ij e r_ji = f_ij
+                curr = pred[curr];
             }
 
-            fluxoMaximo += gargalo;
-            System.out.printf("   >>> Fluxo acumulado total na rede: %.2f%n", fluxoMaximo);
+            fluxoMaximo += theta;
+            System.out.printf("   >>> Fluxo máximo acumulado até o momento (f): %.2f%n", fluxoMaximo);
             numIteracao++;
         }
 
         System.out.println("\n======================================================================");
-        System.out.printf("   Fluxo Máximo Total Alcançado: %.2f%n", fluxoMaximo);
+        System.out.printf("   Fluxo Máximo Total Alcançado (f): %.2f%n", fluxoMaximo);
         System.out.println("======================================================================");
 
         // ==========================================================

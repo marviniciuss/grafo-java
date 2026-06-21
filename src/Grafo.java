@@ -2156,7 +2156,7 @@ public class Grafo {
         incluirArestaComCusto(0, 1, 10.0, 4.0, "s -> A");
         incluirArestaComCusto(0, 2, 20.0, 8.0, "s -> B");
         incluirArestaComCusto(0, 3, 14.0, 7.0, "s -> C");
-        incluirArestaComCusto(2, 1, 7.0, 2.0, "B -> A");
+        incluirArestaComCusto(1, 2, 7.0, 2.0, "A -> B");
         incluirArestaComCusto(1, 4, 12.0, 6.0, "A -> D");
         incluirArestaComCusto(3, 5, 16.0, 7.0, "C -> E");
         incluirArestaComCusto(2, 5, 8.0, 3.0, "B -> E");

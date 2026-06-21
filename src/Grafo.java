@@ -159,8 +159,12 @@ public class Grafo {
                     // Busca o rótulo do destino acessando o vetor principal
                     String rotuloDestino = vetorVertices[atual.idDestino].caracteristica;
 
-                    // Imprime a aresta com o rótulo incluído
-                    System.out.print("[V" + atual.idDestino + " (" + rotuloDestino + ") | Custo: " + atual.custo + "] ");
+                    // Imprime a aresta com o rótulo incluído e os termos corretos para redes de fluxo
+                    if (atual.custoUnitario > 0.0) {
+                        System.out.print("[V" + atual.idDestino + " (" + rotuloDestino + ") | Cap: " + atual.custo + ", CustoUnit: " + atual.custoUnitario + "] ");
+                    } else {
+                        System.out.print("[V" + atual.idDestino + " (" + rotuloDestino + ") | Custo/Cap: " + atual.custo + "] ");
+                    }
                     atual = atual.proxima;
                 }
                 System.out.println();

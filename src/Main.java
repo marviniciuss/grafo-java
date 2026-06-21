@@ -49,6 +49,8 @@ public class Main {
             System.out.println("27. [AC03-Q2] Executar Algoritmo de Edmonds-Karp (BFS)");
             System.out.println("28. [AC03-Q2] Gerar Cenário de Fluxo Padrão (10 Vértices, Multígrafo)");
             System.out.println("29. [AC03-Q5] Executar Algoritmo de Ford-Fulkerson (DFS)");
+            System.out.println("30. [AC03-Q7] Executar Algoritmo de Busacker & Gowen (Bellman-Ford)");
+            System.out.println("31. [AC03-Q7] Gerar Cenário de Custo Mínimo da Figura 1 (7 Vértices)");
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -248,6 +250,20 @@ public class Main {
                         System.out.print("Digite o ID do vértice de destino (t): ");
                         int tFF = scanner.nextInt();
                         grafoAtual.executarFordFulkersonDFS(sFF, tFF);
+                        break;
+
+                    case 30:
+                        System.out.println("\n--- EXECUTANDO BUSACKER & GOWEN (BELLMAN-FORD) NO G" + (indiceAtivo + 1) + " ---");
+                        System.out.print("Digite o ID do vértice de origem (s): ");
+                        int sBG = scanner.nextInt();
+                        System.out.print("Digite o ID do vértice de destino (t): ");
+                        int tBG = scanner.nextInt();
+                        grafoAtual.executarBusackerGowen(sBG, tBG);
+                        break;
+
+                    case 31:
+                        System.out.println("\n--- GERANDO CENÁRIO DE CUSTO MÍNIMO (FIGURA 1) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.gerarCenarioFigura1();
                         break;
                     // ------------------------------------------
 

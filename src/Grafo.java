@@ -1484,6 +1484,7 @@ public class Grafo {
             if (e.arestaReversa == null) {
                 Aresta rev = new Aresta(origem, 0.0, "Reversa de " + e.caracteristica);
                 rev.ehReversaProvisoria = true;
+                rev.custoUnitario = -e.custoUnitario; // Propaga custo unitário negativo para a aresta reversa
 
                 // Insere no início da lista do destino
                 rev.proxima = vetorVertices[destino].inicioLista;
@@ -1583,6 +1584,7 @@ public class Grafo {
 
         double fluxoMaximo = 0; // f := 0
         int numIteracao = 1;
+        int totalArestasCaminhos = 0;
 
         // while GR contém um caminho direto de s-t (Procedimento Rotulante rotula t)
         while (buscarCaminhoAumentante(s, t, pred, paiAresta)) {
@@ -1610,6 +1612,7 @@ public class Grafo {
                 caminhoLen++;
                 temp = pred[temp];
             }
+            totalArestasCaminhos += caminhoLen;
 
             int[] verticesCaminho = new int[caminhoLen + 1];
             Aresta[] arestasCaminho = new Aresta[caminhoLen];
@@ -1716,6 +1719,25 @@ public class Grafo {
         System.out.println("    Como a capacidade residual é 0, o corte está completamente saturado (gargalo total).");
         System.out.println("======================================================================\n");
 
+        // ==========================================================
+        // PAINEL COMPARATIVO DIDÁTICO
+        // ==========================================================
+        System.out.println("======================================================================");
+        System.out.println("   📊 PAINEL COMPARATIVO DIDÁTICO (EDMONDS-KARP BFS)                  ");
+        System.out.println("======================================================================");
+        System.out.printf("   - Algoritmo: Edmonds-Karp (Caminho Aumentante via BFS)%n");
+        System.out.printf("   - Fluxo Máximo Final (f): %.2f%n", fluxoMaximo);
+        System.out.printf("   - Caminhos Aumentantes Encontrados: %d%n", numIteracao - 1);
+        if (numIteracao > 1) {
+            double mediaArestas = (double) totalArestasCaminhos / (numIteracao - 1);
+            System.out.printf("   - Média de arestas (canos) por caminho: %.2f%n", mediaArestas);
+            System.out.println("   - Nota Teórica: A BFS garante encontrar SEMPRE o caminho aumentante");
+            System.out.println("                   com o menor número de arestas (mais curto).");
+        } else {
+            System.out.println("   - Nenhum caminho aumentante foi encontrado.");
+        }
+        System.out.println("======================================================================\n");
+
         limparRedeFluxo();
     }
 
@@ -1770,5 +1792,378 @@ public class Grafo {
         incluirAresta(8, 9, 10.0, "Caminho N");
         
         System.out.println("[!] Grafo de Fluxo Padrão gerado com 10 vértices e arcos direcionados (incluindo arestas paralelas para provar o suporte a multígrafos).");
+    }
+
+    // =========================================================================
+    // FORD-FULKERSON COM DFS (QUESTÃO 5)
+    // =========================================================================
+
+    private boolean buscarCaminhoAumentanteDFS(int u, int t, boolean[] rotulo, int[] pred, Aresta[] paiAresta) {
+        if (u == t) return true;
+        rotulo[u] = true; // rotulo[u] := 1
+
+        Vertice vert = vetorVertices[u];
+        if (vert == null) return false;
+
+        Aresta e = vert.inicioLista;
+        while (e != null) {
+            int j = e.idDestino;
+            double capResidual = e.custo - e.fluxo; // rij
+
+            if (vetorVertices[j] != null && !rotulo[j] && capResidual > 0) {
+                pred[j] = u; // pred[j] := u
+                paiAresta[j] = e; // guarda a aresta física
+                
+                if (buscarCaminhoAumentanteDFS(j, t, rotulo, pred, paiAresta)) {
+                    return true;
+                }
+            }
+            e = e.proxima;
+        }
+        return false;
+    }
+
+    private boolean procedimentoRotulanteDFS(int s, int t, int[] pred, Aresta[] paiAresta) {
+        boolean[] rotulo = new boolean[capacidadeAtual];
+        return buscarCaminhoAumentanteDFS(s, t, rotulo, pred, paiAresta);
+    }
+
+    public void executarFordFulkersonDFS(int s, int t) {
+        if (s >= capacidadeAtual || vetorVertices[s] == null || t >= capacidadeAtual || vetorVertices[t] == null) {
+            System.out.println("[x] Erro: Vértice de origem ou destino inválido.");
+            return;
+        }
+
+        System.out.println("\n======================================================================");
+        System.out.println("   ALGORITMO DE FORD-FULKERSON (DFS - BUSCA EM PROFUNDIDADE)          ");
+        System.out.println("   Origem (s): V" + s + " (" + vetorVertices[s].caracteristica + ") | Destino (t): V" + t + " (" + vetorVertices[t].caracteristica + ")");
+        System.out.println("======================================================================");
+
+        prepararRedeFluxo();
+
+        int[] pred = new int[capacidadeAtual];
+        Aresta[] paiAresta = new Aresta[capacidadeAtual];
+
+        double fluxoMaximo = 0;
+        int numIteracao = 1;
+        int totalArestasCaminhos = 0;
+
+        while (procedimentoRotulanteDFS(s, t, pred, paiAresta)) {
+            // 1. Identifica a capacidade residual gargalo theta ao longo do caminho P
+            double theta = Double.MAX_VALUE;
+            int curr = t;
+            while (curr != s) {
+                Aresta e = paiAresta[curr];
+                double rij = e.custo - e.fluxo;
+                if (rij < theta) {
+                    theta = rij;
+                }
+                curr = pred[curr];
+            }
+
+            // 2. Imprime o caminho aumentante de forma didática
+            System.out.println("\n[Iteração #" + numIteracao + "] Caminho Aumentante P encontrado via DFS:");
+
+            int caminhoLen = 0;
+            int temp = t;
+            while (temp != s) {
+                caminhoLen++;
+                temp = pred[temp];
+            }
+            totalArestasCaminhos += caminhoLen;
+
+            int[] verticesCaminho = new int[caminhoLen + 1];
+            Aresta[] arestasCaminho = new Aresta[caminhoLen];
+            temp = t;
+            for (int i = caminhoLen; i > 0; i--) {
+                verticesCaminho[i] = temp;
+                arestasCaminho[i - 1] = paiAresta[temp];
+                temp = pred[temp];
+            }
+            verticesCaminho[0] = s;
+
+            System.out.print("   Caminho P (DFS): ");
+            for (int i = 0; i < caminhoLen; i++) {
+                int u = verticesCaminho[i];
+                Aresta e = arestasCaminho[i];
+                String tipo = e.ehReversaProvisoria ? "Reversa" : "Direta";
+                System.out.printf("V%d --(%s, cap: %.2f, fluxo: %.2f | residual: %.2f)--> ", 
+                    u, tipo, e.custo, e.fluxo, e.custo - e.fluxo);
+            }
+            System.out.println("V" + t);
+            System.out.printf("   >>> gargalo (theta) = %.2f%n", theta);
+            System.out.printf("   >>> [Caminho_Aumentante] Aumentando fluxo: f := f + %.2f%n", theta);
+
+            // 3. Aumenta o fluxo ao longo de P (f := f + theta)
+            curr = t;
+            while (curr != s) {
+                Aresta e = paiAresta[curr];
+                e.fluxo += theta;
+                e.arestaReversa.fluxo -= theta;
+                curr = pred[curr];
+            }
+
+            fluxoMaximo += theta;
+            System.out.printf("   >>> Fluxo máximo acumulado (f): %.2f%n", fluxoMaximo);
+            numIteracao++;
+        }
+
+        System.out.println("\n======================================================================");
+        System.out.printf("   Fluxo Máximo Total Alcançado (f): %.2f%n", fluxoMaximo);
+        System.out.println("======================================================================");
+
+        // Exibição do Corte
+        boolean[] alcansavelResidual = new boolean[capacidadeAtual];
+        marcarAlcanceResidual(s, alcansavelResidual);
+
+        System.out.println("\n>>> ANÁLISE DO CORTE MÍNIMO s-t (Ford-Fulkerson DFS) <<<");
+        System.out.print("   Conjunto S (Lado da Fonte): { ");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && alcansavelResidual[i]) System.out.print("V" + i + " ");
+        }
+        System.out.println("}");
+
+        System.out.print("   Conjunto T (Lado do Sumidouro): { ");
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null && !alcansavelResidual[i]) System.out.print("V" + i + " ");
+        }
+        System.out.println("}");
+
+        double capacidadeCorteOriginal = 0;
+        for (int u = 0; u < capacidadeAtual; u++) {
+            if (vetorVertices[u] != null && alcansavelResidual[u]) {
+                Aresta e = vetorVertices[u].inicioLista;
+                while (e != null) {
+                    int v = e.idDestino;
+                    if (vetorVertices[v] != null && !alcansavelResidual[v] && !e.ehReversaProvisoria) {
+                        capacidadeCorteOriginal += e.custo;
+                    }
+                    e = e.proxima;
+                }
+            }
+        }
+        System.out.printf("   >>> Capacidade do Corte Mínimo no Grafo Original: %.2f%n", capacidadeCorteOriginal);
+
+        // ==========================================================
+        // PAINEL COMPARATIVO DIDÁTICO
+        // ==========================================================
+        System.out.println("\n======================================================================");
+        System.out.println("   📊 PAINEL COMPARATIVO DIDÁTICO (FORD-FULKERSON DFS)               ");
+        System.out.println("======================================================================");
+        System.out.printf("   - Algoritmo: Ford-Fulkerson (Caminho Aumentante via DFS)%n");
+        System.out.printf("   - Fluxo Máximo Final (f): %.2f%n", fluxoMaximo);
+        System.out.printf("   - Caminhos Aumentantes Encontrados: %d%n", numIteracao - 1);
+        if (numIteracao > 1) {
+            double mediaArestas = (double) totalArestasCaminhos / (numIteracao - 1);
+            System.out.printf("   - Média de arestas (canos) por caminho: %.2f%n", mediaArestas);
+            System.out.println("   - Nota Teórica: A DFS busca caminhos sem critério de comprimento.");
+            System.out.println("                   Pode encontrar caminhos mais longos e zigue-zagues.");
+        } else {
+            System.out.println("   - Nenhum caminho aumentante foi encontrado.");
+        }
+        System.out.println("======================================================================\n");
+
+        limparRedeFluxo();
+    }
+
+    // =========================================================================
+    // BUSACKER & GOWEN (CUSTO MÍNIMO FLUXO MÁXIMO) - QUESTÃO 7
+    // =========================================================================
+
+    public void incluirArestaComCusto(int origem, int destino, double capacidade, double custoUnitario, String caracteristica) {
+        garantirCapacidade(Math.max(origem, destino));
+        if (vetorVertices[origem] == null) incluirVertice(origem, "Vértice " + origem);
+        if (vetorVertices[destino] == null) incluirVertice(destino, "Vértice " + destino);
+
+        Aresta nova = new Aresta(destino, capacidade, caracteristica);
+        nova.custoUnitario = custoUnitario;
+        // Insere no início da lista encadeada (mais rápido: O(1))
+        nova.proxima = vetorVertices[origem].inicioLista;
+        vetorVertices[origem].inicioLista = nova;
+    }
+
+    private boolean buscarCaminhoMaisBarato(int s, int t, int[] pred, Aresta[] paiAresta) {
+        double[] dist = new double[capacidadeAtual];
+        java.util.Arrays.fill(dist, Double.MAX_VALUE);
+        java.util.Arrays.fill(pred, -1);
+        dist[s] = 0.0;
+
+        int V = 0;
+        for (int i = 0; i < capacidadeAtual; i++) {
+            if (vetorVertices[i] != null) {
+                V++;
+            }
+        }
+
+        // Relaxar arestas V - 1 vezes (Bellman-Ford)
+        for (int step = 0; step < V - 1; step++) {
+            boolean mudou = false;
+            for (int u = 0; u < capacidadeAtual; u++) {
+                if (vetorVertices[u] == null || dist[u] == Double.MAX_VALUE) continue;
+
+                Aresta e = vetorVertices[u].inicioLista;
+                while (e != null) {
+                    int v = e.idDestino;
+                    double capResidual = e.custo - e.fluxo;
+
+                    if (vetorVertices[v] != null && capResidual > 0.0001) {
+                        if (dist[u] + e.custoUnitario < dist[v] - 0.0001) {
+                            dist[v] = dist[u] + e.custoUnitario;
+                            pred[v] = u;
+                            paiAresta[v] = e;
+                            mudou = true;
+                        }
+                    }
+                    e = e.proxima;
+                }
+            }
+            if (!mudou) break;
+        }
+
+        return dist[t] != Double.MAX_VALUE;
+    }
+
+    public void executarBusackerGowen(int s, int t) {
+        if (s >= capacidadeAtual || vetorVertices[s] == null || t >= capacidadeAtual || vetorVertices[t] == null) {
+            System.out.println("[x] Erro: Vértice de origem ou destino inválido.");
+            return;
+        }
+
+        System.out.println("\n======================================================================");
+        System.out.println("   ALGORITMO DE BUSACKER & GOWEN (FLUXO MÁXIMO DE CUSTO MÍNIMO)        ");
+        System.out.println("   Origem (s): V" + s + " (" + vetorVertices[s].caracteristica + ") | Destino (t): V" + t + " (" + vetorVertices[t].caracteristica + ")");
+        System.out.println("======================================================================");
+
+        prepararRedeFluxo();
+
+        int[] pred = new int[capacidadeAtual];
+        Aresta[] paiAresta = new Aresta[capacidadeAtual];
+
+        double fluxoMaximo = 0;
+        double custoTotal = 0;
+        int numIteracao = 1;
+
+        while (buscarCaminhoMaisBarato(s, t, pred, paiAresta)) {
+            // 1. Identificar o gargalo (theta) ao longo do caminho
+            double theta = Double.MAX_VALUE;
+            double custoCaminhoUnitario = 0;
+            int curr = t;
+            while (curr != s) {
+                Aresta e = paiAresta[curr];
+                double rij = e.custo - e.fluxo;
+                if (rij < theta) {
+                    theta = rij;
+                }
+                custoCaminhoUnitario += e.custoUnitario;
+                curr = pred[curr];
+            }
+
+            // 2. Imprimir o caminho aumentante encontrado de forma didática
+            System.out.println("\n[Iteração #" + numIteracao + "] Caminho de Custo Mínimo encontrado (Bellman-Ford):");
+            
+            // Medir comprimento do caminho
+            int caminhoLen = 0;
+            int temp = t;
+            while (temp != s) {
+                caminhoLen++;
+                temp = pred[temp];
+            }
+
+            int[] verticesCaminho = new int[caminhoLen + 1];
+            Aresta[] arestasCaminho = new Aresta[caminhoLen];
+            temp = t;
+            for (int i = caminhoLen; i > 0; i--) {
+                verticesCaminho[i] = temp;
+                arestasCaminho[i - 1] = paiAresta[temp];
+                temp = pred[temp];
+            }
+            verticesCaminho[0] = s;
+
+            System.out.print("   Caminho P: ");
+            for (int i = 0; i < caminhoLen; i++) {
+                int u = verticesCaminho[i];
+                Aresta e = arestasCaminho[i];
+                String tipo = e.ehReversaProvisoria ? "Reversa" : "Direta";
+                System.out.printf("V%d --(%s, cap: %.2f, fluxo: %.2f, custoUnit: %.2f | residual: %.2f)--> ", 
+                    u, tipo, e.custo, e.fluxo, e.custoUnitario, e.custo - e.fluxo);
+            }
+            System.out.println("V" + t);
+            System.out.printf("   >>> Custo Unitário do Caminho: %.2f%n", custoCaminhoUnitario);
+            System.out.printf("   >>> Gargalo (theta) = %.2f%n", theta);
+            double custoIteracao = theta * custoCaminhoUnitario;
+            System.out.printf("   >>> Custo desta iteração: %.2f * %.2f = %.2f%n", theta, custoCaminhoUnitario, custoIteracao);
+
+            // 3. Atualizar o fluxo ao longo do caminho
+            curr = t;
+            while (curr != s) {
+                Aresta e = paiAresta[curr];
+                e.fluxo += theta;
+                e.arestaReversa.fluxo -= theta;
+                curr = pred[curr];
+            }
+
+            fluxoMaximo += theta;
+            custoTotal += custoIteracao;
+            System.out.printf("   >>> Fluxo Acumulado: %.2f | Custo Total Acumulado: %.2f%n", fluxoMaximo, custoTotal);
+            numIteracao++;
+        }
+
+        System.out.println("\n======================================================================");
+        System.out.printf("   Fluxo Máximo Total Alcançado (f): %.2f%n", fluxoMaximo);
+        System.out.printf("   Custo Mínimo Total do Fluxo:      %.2f%n", custoTotal);
+        System.out.println("======================================================================");
+
+        // Imprimir detalhamento didático das arestas com fluxo ativo
+        System.out.println("\n>>> DETALHAMENTO DE FLUXOS E CUSTOS POR ARESTA (ATIVOS) <<<");
+        System.out.printf("   %-15s | %-12s | %-12s | %-15s | %-12s%n", "Aresta (U -> V)", "Capacidade", "Fluxo Final", "Custo Unitário", "Subtotal Custo");
+        System.out.println("   ----------------------------------------------------------------------------------------");
+
+        for (int u = 0; u < capacidadeAtual; u++) {
+            if (vetorVertices[u] != null) {
+                Aresta e = vetorVertices[u].inicioLista;
+                while (e != null) {
+                    // Apenas arestas originais com fluxo > 0 (ignora as provisórias e as sem fluxo)
+                    if (!e.ehReversaProvisoria && e.fluxo > 0.0001) {
+                        double subtotal = e.fluxo * e.custoUnitario;
+                        System.out.printf("   V%-2d -> V%-10d | %-12.2f | %-12.2f | %-15.2f | %-12.2f%n", 
+                            u, e.idDestino, e.custo, e.fluxo, e.custoUnitario, subtotal);
+                    }
+                    e = e.proxima;
+                }
+            }
+        }
+        System.out.println("   ----------------------------------------------------------------------------------------");
+        System.out.printf("   >>> Custo Total Calculado (Soma dos subtotais): %.2f%n", custoTotal);
+        System.out.println("======================================================================\n");
+
+        limparRedeFluxo();
+    }
+
+    public void gerarCenarioFigura1() {
+        destruirGrafo(); // Reseta o grafo atual
+        this.capacidadeAtual = 7;
+        this.vetorVertices = new Vertice[7];
+
+        incluirVertice(0, "s (Fonte)");
+        incluirVertice(1, "A");
+        incluirVertice(2, "B");
+        incluirVertice(3, "C");
+        incluirVertice(4, "D");
+        incluirVertice(5, "E");
+        incluirVertice(6, "t (Sumidouro)");
+
+        // De acordo com a Figura 1: (capacidade, custoUnitario)
+        incluirArestaComCusto(0, 1, 10.0, 4.0, "s -> A");
+        incluirArestaComCusto(0, 2, 20.0, 8.0, "s -> B");
+        incluirArestaComCusto(0, 3, 14.0, 7.0, "s -> C");
+        incluirArestaComCusto(2, 1, 7.0, 2.0, "B -> A");
+        incluirArestaComCusto(1, 4, 12.0, 6.0, "A -> D");
+        incluirArestaComCusto(3, 5, 16.0, 7.0, "C -> E");
+        incluirArestaComCusto(2, 5, 8.0, 3.0, "B -> E");
+        incluirArestaComCusto(5, 4, 2.0, 5.0, "E -> D");
+        incluirArestaComCusto(4, 6, 17.0, 9.0, "D -> t");
+        incluirArestaComCusto(5, 6, 14.0, 8.0, "E -> t");
+
+        System.out.println("[!] Grafo da Figura 1 (Questão 7) gerado com 7 vértices e 10 arcos.");
     }
 }

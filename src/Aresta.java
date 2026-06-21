@@ -8,6 +8,7 @@ public class Aresta {
     double fluxo;                  // Fluxo atual na aresta
     Aresta arestaReversa;          // Referência direta à aresta reversa no grafo residual
     boolean ehReversaProvisoria;   // Indica se é uma aresta reversa adicionada temporariamente
+    double custoUnitario;          // Custo unitário por unidade de fluxo (usado no MCMF)
 
     public Aresta(int idDestino, double custo, String caracteristica) {
         this.idDestino = idDestino;
@@ -17,5 +18,6 @@ public class Aresta {
         this.fluxo = 0.0;
         this.arestaReversa = null;
         this.ehReversaProvisoria = false;
+        this.custoUnitario = 0.0;
     }
 }

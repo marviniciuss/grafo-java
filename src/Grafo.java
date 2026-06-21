@@ -2153,16 +2153,16 @@ public class Grafo {
         incluirVertice(6, "t (Sumidouro)");
 
         // De acordo com a Figura 1: (capacidade, custoUnitario)
-        incluirArestaComCusto(0, 1, 10.0, 4.0, "s -> A");
-        incluirArestaComCusto(0, 2, 20.0, 8.0, "s -> B");
-        incluirArestaComCusto(0, 3, 14.0, 7.0, "s -> C");
-        incluirArestaComCusto(1, 2, 7.0, 2.0, "A -> B");
-        incluirArestaComCusto(1, 4, 12.0, 6.0, "A -> D");
-        incluirArestaComCusto(3, 5, 16.0, 7.0, "C -> E");
-        incluirArestaComCusto(2, 5, 8.0, 3.0, "B -> E");
-        incluirArestaComCusto(5, 4, 2.0, 5.0, "E -> D");
-        incluirArestaComCusto(4, 6, 17.0, 9.0, "D -> t");
-        incluirArestaComCusto(5, 6, 14.0, 8.0, "E -> t");
+        incluirArestaComCusto(0, 1, 4.0, 10.0, "s -> A");
+        incluirArestaComCusto(0, 2, 8.0, 20.0, "s -> B");
+        incluirArestaComCusto(0, 3, 7.0, 14.0, "s -> C");
+        incluirArestaComCusto(1, 2, 2.0, 7.0, "A -> B");
+        incluirArestaComCusto(1, 4, 6.0, 12.0, "A -> D");
+        incluirArestaComCusto(3, 5, 7.0, 16.0, "C -> E");
+        incluirArestaComCusto(2, 5, 3.0, 8.0, "B -> E");
+        incluirArestaComCusto(5, 4, 5.0, 2.0, "E -> D");
+        incluirArestaComCusto(4, 6, 9.0, 17.0, "D -> t");
+        incluirArestaComCusto(5, 6, 8.0, 14.0, "E -> t");
 
         System.out.println("[!] Grafo da Figura 1 (Questão 7) gerado com 7 vértices e 10 arcos.");
     }

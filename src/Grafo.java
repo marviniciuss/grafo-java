@@ -2414,9 +2414,9 @@ public class Grafo {
         System.out.println("   RESOLUÇÃO DA QUESTÃO 03 - COMPARATIVO TSP (PCV)");
         System.out.println("======================================================================");
         
-        // Coordenadas da Figura A (10 pontos de grafo_imagem.png)
-        double[] x = {2.5, 3.0, 4.0, 6.5, 6.5, 4.5, 1.5, 3.5, 6.3, 7.8};
-        double[] y = {6.0, 4.5, 5.0, 5.2, 4.0, 3.5, 1.5, 1.8, 1.7, 1.2};
+        // Coordenadas da Figura A (10 pontos de grafo_imagem.png, ajustadas para exatidão visual)
+        double[] x = {2.5, 3.0, 4.2, 6.8, 6.8, 4.7, 1.7, 3.7, 6.7, 8.3};
+        double[] y = {8.5, 6.0, 7.0, 7.3, 5.2, 4.3, 1.5, 1.9, 1.8, 1.2};
         int n = 10;
         
         // ----------------------------------------------------------------------

@@ -51,6 +51,8 @@ public class Main {
             System.out.println("29. [AC03-Q5] Executar Algoritmo de Ford-Fulkerson (DFS)");
             System.out.println("30. [AC03-Q7] Executar Algoritmo de Busacker & Gowen (Bellman-Ford)");
             System.out.println("31. [AC03-Q7] Gerar Cenário de Custo Mínimo da Figura 1 (7 Vértices)");
+            System.out.println("32. [AC04-Q2] Resolver Questão 2 (Coloração em Grafos)");
+            System.out.println("33. [AC04-Q3] Resolver Questão 3 (Comparativo TSP/PCV)");
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -264,6 +266,16 @@ public class Main {
                     case 31:
                         System.out.println("\n--- GERANDO CENÁRIO DE CUSTO MÍNIMO (FIGURA 1) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.gerarCenarioFigura1();
+                        break;
+                    
+                    case 32:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 2 (COLORAÇÃO DE GRAFO RANDÔMICO) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.executarColoracaoQ2();
+                        break;
+                    
+                    case 33:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 3 (COMPARATIVO TSP/PCV) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.executarQuestao3();
                         break;
                     // ------------------------------------------
 

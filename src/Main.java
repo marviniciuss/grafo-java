@@ -53,6 +53,7 @@ public class Main {
             System.out.println("31. [AC03-Q7] Gerar Cenário de Custo Mínimo da Figura 1 (7 Vértices)");
             System.out.println("32. [AC04-Q2] Resolver Questão 2 (Coloração em Grafos)");
             System.out.println("33. [AC04-Q3] Resolver Questão 3 (Comparativo TSP/PCV)");
+            System.out.println("34. [AC04-Q4] Resolver Questão 4 (Carteiro Chinês / PCC)");
             System.out.println("----------------------------------------");
             System.out.println("88. [?] COMPARAR G1 e G2 (Isomorfismo/Similaridade)");
             System.out.println("99. [!] ALTERNAR GRAFO ATIVO (Mudar para G" + (indiceAtivo == 0 ? "2" : "1") + ")");
@@ -276,6 +277,11 @@ public class Main {
                     case 33:
                         System.out.println("\n--- EXECUTANDO QUESTÃO 3 (COMPARATIVO TSP/PCV) NO G" + (indiceAtivo + 1) + " ---");
                         grafoAtual.executarQuestao3();
+                        break;
+                    
+                    case 34:
+                        System.out.println("\n--- EXECUTANDO QUESTÃO 4 (CARTEIRO CHINÊS / PCC) NO G" + (indiceAtivo + 1) + " ---");
+                        grafoAtual.executarQuestao4();
                         break;
                     // ------------------------------------------
 

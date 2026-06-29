@@ -2783,4 +2783,186 @@ public class Grafo {
             }
         }
     }
+
+    public void executarQuestao4() {
+        System.out.println("======================================================================");
+        System.out.println("   RESOLUÇÃO DA QUESTÃO 04 - CARTEIRO CHINÊS DIRECIONADO (PCC)");
+        System.out.println("======================================================================");
+        
+        // 1. Coordenadas da Figura B / grafo_04.png
+        double[] x = {2.5, 3.0, 4.2, 6.8, 6.8, 4.7, 1.7, 3.7, 6.7, 8.3};
+        double[] y = {8.5, 6.0, 7.0, 7.3, 5.2, 4.3, 1.5, 1.9, 1.8, 1.2};
+        int n = 10;
+        
+        // 2. Arestas direcionadas de grafo_04.png (0-based)
+        int[][] arestasPCC = {
+            {0, 1}, {1, 2}, {2, 0},       // Ciclo 1->2->3->1
+            {1, 6}, {6, 7}, {7, 5}, {5, 1}, // Ciclo 2->7->8->6->2
+            {2, 4}, {4, 3}, {3, 0},       // Caminho 3->5->4->1
+            {5, 4},                       // 6->5
+            {7, 8}, {8, 5},               // 8->9->6
+            {4, 8},                       // 5->9
+            {8, 9}, {9, 4}                // 9->10->5
+        };
+        
+        // Inicialização do grafo e cálculo de distâncias
+        destruirGrafo();
+        this.capacidadeAtual = n;
+        this.vetorVertices = new Vertice[n];
+        for (int i = 0; i < n; i++) {
+            incluirVertice(i, "P" + (i + 1) + "(" + x[i] + "," + y[i] + ")");
+        }
+        
+        double[][] d = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            java.util.Arrays.fill(d[i], Double.POSITIVE_INFINITY);
+            d[i][i] = 0.0;
+        }
+        
+        double originalCost = 0.0;
+        for (int[] e : arestasPCC) {
+            int u = e[0];
+            int v = e[1];
+            double dist = Math.sqrt((x[u] - x[v]) * (x[u] - x[v]) + (y[u] - y[v]) * (y[u] - y[v]));
+            d[u][v] = dist;
+            incluirAresta(u, v, dist, "D"); // Direcionado
+            originalCost += dist;
+        }
+        
+        System.out.println("1. Grafo direcionado populado com 10 vértices e 16 arcos.");
+        System.out.println("   - Soma dos custos dos arcos originais: " + String.format("%.4f", originalCost));
+        
+        // 3. Graus de Entrada e Saída
+        int[] outDeg = new int[n];
+        int[] inDeg = new int[n];
+        for (int[] e : arestasPCC) {
+            outDeg[e[0]]++;
+            inDeg[e[1]]++;
+        }
+        
+        System.out.println("\n2. Graus dos Vértices (Entrada vs. Saída):");
+        for (int i = 0; i < n; i++) {
+            int diff = inDeg[i] - outDeg[i];
+            System.out.println("   - P" + (i + 1) + ": Entrada=" + inDeg[i] + ", Saída=" + outDeg[i] + " | Saldo=" + (diff > 0 ? "+" : "") + diff);
+        }
+        
+        // 4. Floyd-Warshall para encontrar caminhos mais curtos para a duplicação
+        double[][] sp = new double[n][n];
+        int[][] path = new int[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                sp[i][j] = d[i][j];
+                path[i][j] = (d[i][j] < Double.POSITIVE_INFINITY && i != j) ? j : -1;
+            }
+        }
+        
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (sp[i][k] + sp[k][j] < sp[i][j]) {
+                        sp[i][j] = sp[i][k] + sp[k][j];
+                        path[i][j] = path[i][k];
+                    }
+                }
+            }
+        }
+        
+        // 5. Identificar vértices com saldo positivo (sinks de duplicação) e negativo (sources de duplicação)
+        java.util.List<Integer> flowSources = new java.util.ArrayList<>();
+        java.util.List<Integer> flowSinks = new java.util.ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            int diff = inDeg[i] - outDeg[i];
+            if (diff > 0) {
+                for (int c = 0; c < diff; c++) flowSources.add(i); // Precisa de mais saídas
+            } else if (diff < 0) {
+                for (int c = 0; c < -diff; c++) flowSinks.add(i);   // Precisa de mais entradas
+            }
+        }
+        
+        System.out.println("\n3. Desbalanceamento de Fluxo:");
+        System.out.print("   - Fontes de Duplicação (Entrada > Saída, precisam de novos arcos saindo): ");
+        for (int s : flowSources) System.out.print("P" + (s + 1) + " ");
+        System.out.print("\n   - Sumidouros de Duplicação (Saída > Entrada, precisam de novos arcos entrando): ");
+        for (int t : flowSinks) System.out.print("P" + (t + 1) + " ");
+        System.out.println();
+        
+        // 6. Resolução do Emparelhamento de Custo Mínimo (2x2)
+        int s1 = flowSources.get(0);
+        int s2 = flowSources.get(1);
+        int t1 = flowSinks.get(0);
+        int t2 = flowSinks.get(1);
+        
+        double cost1 = sp[s1][t1] + sp[s2][t2];
+        double cost2 = sp[s1][t2] + sp[s2][t1];
+        
+        System.out.println("\n4. Opções de Emparelhamento (Matching) para Duplicação:");
+        System.out.println("   - Opção 1: P" + (s1 + 1) + " -> P" + (t1 + 1) + " e P" + (s2 + 1) + " -> P" + (t2 + 1) + " | Custo = " + String.format("%.4f", cost1));
+        System.out.println("   - Opção 2: P" + (s1 + 1) + " -> P" + (t2 + 1) + " e P" + (s2 + 1) + " -> P" + (t1 + 1) + " | Custo = " + String.format("%.4f", cost2));
+        
+        java.util.List<int[]> optEdges = new java.util.ArrayList<>();
+        if (cost1 < cost2) {
+            System.out.println("   -> Opção 1 selecionada como Ótima!");
+            adicionarCaminhoPCC(s1, t1, path, optEdges);
+            adicionarCaminhoPCC(s2, t2, path, optEdges);
+        } else {
+            System.out.println("   -> Opção 2 selecionada como Ótima!");
+            adicionarCaminhoPCC(s1, t2, path, optEdges);
+            adicionarCaminhoPCC(s2, t1, path, optEdges);
+        }
+        
+        double duplicationCost = 0.0;
+        System.out.println("\n5. Arcos Duplicados Necessários:");
+        for (int[] e : optEdges) {
+            double dist = Math.sqrt((x[e[0]] - x[e[1]]) * (x[e[0]] - x[e[1]]) + (y[e[0]] - y[e[1]]) * (y[e[0]] - y[e[1]]));
+            duplicationCost += dist;
+            System.out.println("   - Duplicar Arco P" + (e[0] + 1) + " -> P" + (e[1] + 1) + " (Custo: " + String.format("%.4f", dist) + ")");
+        }
+        System.out.println("   - Custo total da duplicação: " + String.format("%.4f", duplicationCost));
+        
+        // 7. Achar o Circuito Euleriano do Grafo Aumentado usando Algoritmo de Hierholzer
+        java.util.List<Integer>[] augAdj = new java.util.ArrayList[n];
+        for (int i = 0; i < n; i++) augAdj[i] = new java.util.ArrayList<>();
+        for (int[] e : arestasPCC) {
+            augAdj[e[0]].add(e[1]);
+        }
+        for (int[] e : optEdges) {
+            augAdj[e[0]].add(e[1]);
+        }
+        
+        java.util.List<Integer> currPath = new java.util.ArrayList<>();
+        java.util.List<Integer> eulerCircuit = new java.util.ArrayList<>();
+        currPath.add(0); // Começa no P1
+        
+        while (!currPath.isEmpty()) {
+            int currNode = currPath.get(currPath.size() - 1);
+            if (!augAdj[currNode].isEmpty()) {
+                int nextNode = augAdj[currNode].remove(0);
+                currPath.add(nextNode);
+            } else {
+                eulerCircuit.add(currPath.remove(currPath.size() - 1));
+            }
+        }
+        java.util.Collections.reverse(eulerCircuit);
+        
+        // Exibir Circuito do Carteiro Chinês
+        java.util.List<Integer> displayCircuit = new java.util.ArrayList<>();
+        for (int node : eulerCircuit) {
+            displayCircuit.add(node + 1);
+        }
+        
+        System.out.println("\n6. Rota do Carteiro Chinês (1-based):");
+        System.out.println("   " + displayCircuit);
+        System.out.println("   - Número de arcos percorridos: " + (eulerCircuit.size() - 1));
+        System.out.println("   - Custo total da viagem do carteiro: " + String.format("%.4f", (originalCost + duplicationCost)));
+        System.out.println("======================================================================");
+    }
+
+    private void adicionarCaminhoPCC(int start, int end, int[][] path, java.util.List<int[]> optEdges) {
+        int curr = start;
+        while (curr != end) {
+            int nxt = path[curr][end];
+            optEdges.add(new int[]{curr, nxt});
+            curr = nxt;
+        }
+    }
 }

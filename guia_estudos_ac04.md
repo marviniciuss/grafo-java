@@ -237,47 +237,39 @@ Neste cenário, todas as conexões entre os 10 vértices são permitidas.
 ---
 
 ### Questão 4: Carteiro Chinês Direcionado (Grafo do Exercício)
-Buscamos a rota ótima para o carteiro chinês no grafo direcionado de 9 vértices. Atribuímos custos positivos arbitrários entre 10 e 20 para as arestas originais:
-
-#### Grafo Original e Pesos:
-*   $0 \to 1$ (custo 12), $0 \to 2$ (custo 15)
-*   $1 \to 3$ (custo 10), $1 \to 4$ (custo 14)
-*   $2 \to 3$ (custo 11), $2 \to 5$ (custo 13)
-*   $3 \to 4$ (custo 16), $3 \to 5$ (custo 18)
-*   $4 \to 6$ (custo 17)
-*   $5 \to 7$ (custo 12)
-*   $6 \to 8$ (custo 19)
-*   $7 \to 8$ (custo 11)
-*   $8 \to 0$ (custo 20)
-
-*Soma dos arcos originais:* **188**.
+Buscamos a rota ótima para o carteiro chinês no grafo direcionado de 10 vértices de [`grafo_04.png`](file:///C:/Users/Vinicius/Downloads/Grafos%20IV/grafo_04.png), cujas coordenadas 2D são idênticas às da Figura A. O grafo original possui 16 arcos direcionados e custo total acumulado de **45.7033**.
 
 #### Passo 1: Calcular os Graus e Identificar Desbalanceamentos
-*   Vértice 0: out=2, in=1 $\implies$ Saldo $= +1$ (Necessita de 1 arco entrando)
-*   Vértice 1: out=2, in=1 $\implies$ Saldo $= +1$ (Necessita de 1 arco entrando)
-*   Vértice 2: out=2, in=1 $\implies$ Saldo $= +1$ (Necessita de 1 arco entrando)
-*   Vértice 3: out=2, in=2 $\implies$ Saldo $= 0$ (Balanceado)
-*   Vértice 4: out=1, in=2 $\implies$ Saldo $= -1$ (Necessita de 1 arco saindo)
-*   Vértice 5: out=1, in=2 $\implies$ Saldo $= -1$ (Necessita de 1 arco saindo)
-*   Vértice 6: out=1, in=1 $\implies$ Saldo $= 0$ (Balanceado)
-*   Vértice 7: out=1, in=1 $\implies$ Saldo $= 0$ (Balanceado)
-*   Vértice 8: out=1, in=2 $\implies$ Saldo $= -1$ (Necessita de 1 arco saindo)
+Calculamos o saldo de cada vértice como $\text{Saldo} = \text{Entrada} - \text{Saída}$:
+*   **P1:** Entrada=2, Saída=1 $\implies$ Saldo $= +1$ (Precisa de arco saindo / Fonte de duplicação)
+*   **P2:** Entrada=2, Saída=2 $\implies$ Saldo $= 0$
+*   **P3:** Entrada=1, Saída=2 $\implies$ Saldo $= -1$ (Precisa de arco entrando / Sumidouro de duplicação)
+*   **P4:** Entrada=1, Saída=1 $\implies$ Saldo $= 0$
+*   **P5:** Entrada=3, Saída=2 $\implies$ Saldo $= +1$ (Precisa de arco saindo / Fonte de duplicação)
+*   **P6:** Entrada=2, Saída=2 $\implies$ Saldo $= 0$
+*   **P7:** Entrada=1, Saída=1 $\implies$ Saldo $= 0$
+*   **P8:** Entrada=1, Saída=2 $\implies$ Saldo $= -1$ (Precisa de arco entrando / Sumidouro de duplicação)
+*   **P9:** Entrada=2, Saída=2 $\implies$ Saldo $= 0$
+*   **P10:** Entrada=1, Saída=1 $\implies$ Saldo $= 0$
 
-#### Passo 2: Modelo de Fluxo a Custo Mínimo para Duplicação de Caminhos
-Devemos encontrar caminhos mais curtos que comecem nos vértices com déficit de saída (4, 5, 8) e terminem nos vértices com déficit de entrada (0, 1, 2). 
+Fontes de duplicação: **P1** e **P5**. Sumidouros de duplicação: **P3** e **P8**.
 
-A solução do problema de transporte nos dá as seguintes duplicações de caminhos ótimas:
-1.  **Caminho duplicado do Vértice 4 para o Vértice 2:** Rota $4 \to 6 \to 8 \to 0 \to 2$ (Custo total = 71).
-2.  **Caminho duplicado do Vértice 5 para o Vértice 1:** Rota $5 \to 7 \to 8 \to 0 \to 1$ (Custo total = 55).
-3.  **Caminho duplicado do Vértice 8 para o Vértice 0:** Rota $8 \to 0$ (Custo total = 20).
+#### Passo 2: Modelo de Emparelhamento de Custo Mínimo para Duplicação
+Buscamos caminhos mais curtos que liguem as fontes de duplicação $\{P_1, P_5\}$ aos sumidouros $\{P_3, P_8\}$:
+*   **Opção 1:** Ligar $P_1 \to P_3$ (custo 4.1116) e $P_5 \to P_8$ (custo 15.7308) $\implies$ Custo Total = **19.8424**
+*   **Opção 2:** Ligar $P_1 \to P_8$ (custo 9.2731) e $P_5 \to P_3$ (custo 10.5692) $\implies$ Custo Total = **19.8424**
 
-*Custo adicional das duplicações:* **146**.
+Ambas as opções de emparelhamento têm o mesmo custo ótimo. Escolhemos a **Opção 2**, que duplica os seguintes caminhos:
+1.  **Caminho de P1 para P8:** Duplica os arcos $P_1 \to P_2$, $P_2 \to P_7$, $P_7 \to P_8$.
+2.  **Caminho de P5 para P3:** Duplica os arcos $P_5 \to P_9$, $P_9 \to P_6$, $P_6 \to P_2$, $P_2 \to P_3$.
 
-#### Rota Completa Obtida (Circuito Euleriano):
-Duplicando as arestas dos caminhos acima, o grafo fica balanceado. A rota euleriana ótima partindo de $0$ é:
-$$0 \to 1 \to 4 \to 6 \to 8 \to 0 \to 2 \to 5 \to 7 \to 8 \to 0 \to 2 \to 3 \to 5 \to 7 \to 8 \to 0 \to 1 \to 3 \to 4 \to 6 \to 8 \to 0$$
+*Custo adicional da duplicação:* **19.8424**.
 
-*   **Custo total do percurso ótimo:** $188 + 146 = \mathbf{334}$.
+#### Rota Completa do Carteiro Chinês (Circuito Euleriano):
+Após duplicar os arcos descritos, todos os vértices ficam balanceados. A rota do carteiro inicia e termina em $P_1$ (23 arcos no total):
+$$1 \to 2 \to 3 \to 1 \to 2 \to 7 \to 8 \to 6 \to 2 \to 7 \to 8 \to 9 \to 6 \to 5 \to 9 \to 10 \to 5 \to 9 \to 6 \to 2 \to 3 \to 5 \to 4 \to 1$$
+
+*   **Custo total do percurso ótimo:** $45.7033 + 19.8424 = \mathbf{65.5457}$.
 
 ---
 

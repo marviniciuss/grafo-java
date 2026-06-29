@@ -2962,11 +2962,170 @@ public class Grafo {
     }
 
     private void adicionarCaminhoPCC(int start, int end, int[][] path, java.util.List<int[]> optEdges) {
-        int curr = start;
-        while (curr != end) {
-            int nxt = path[curr][end];
-            optEdges.add(new int[]{curr, nxt});
-            curr = nxt;
+    }
+
+    public void executarQuestao5() {
+        System.out.println("======================================================================");
+        System.out.println("   RESOLUÇÃO DA QUESTÃO 05 - COLORAÇÃO DE VÉRTICES E ARESTAS (FIGURA B)");
+        System.out.println("======================================================================");
+        
+        int n = 11;
+        
+        // 1. Definição das conexões do grafo da Figura B (não direcionado)
+        // Adjacências do grafo da Figura B
+        java.util.List<Integer>[] adjList = new java.util.ArrayList[n];
+        for (int i = 0; i < n; i++) adjList[i] = new java.util.ArrayList<>();
+        
+        int[][] arestasFigB = {
+            {0, 1}, {0, 2}, {0, 3},
+            {1, 3}, {1, 4},
+            {2, 3}, {2, 5}, {2, 8},
+            {3, 4}, {3, 5}, {3, 6},
+            {4, 6}, {4, 10},
+            {5, 6}, {5, 8}, {5, 9},
+            {6, 9}, {6, 10},
+            {7, 8}, {7, 9}, {7, 10},
+            {8, 9},
+            {9, 10}
+        };
+        
+        destruirGrafo();
+        this.capacidadeAtual = n;
+        this.vetorVertices = new Vertice[n];
+        for (int i = 0; i < n; i++) {
+            incluirVertice(i, "P" + (i + 1));
         }
+        
+        for (int[] e : arestasFigB) {
+            int u = e[0];
+            int v = e[1];
+            adjList[u].add(v);
+            adjList[v].add(u);
+            incluirAresta(u, v, 1.0, "E");
+            incluirAresta(v, u, 1.0, "E");
+        }
+        
+        System.out.println("1. Grafo da Figura B gerado com 11 vértices e 23 arestas não direcionadas.");
+        
+        // A. Coloração de Vértices
+        System.out.println("\n----------------------------------------------------------------------");
+        System.out.println("   PARTE A: K-COLORAÇÃO DE VÉRTICES (MÉTODO EXATO)");
+        System.out.println("----------------------------------------------------------------------");
+        
+        int[] coresVertices = new int[n];
+        int numCromatico = 1;
+        for (int k = 1; k <= n; k++) {
+            java.util.Arrays.fill(coresVertices, 0);
+            if (colorirVerticesQ5(0, k, coresVertices, adjList)) {
+                numCromatico = k;
+                break;
+            }
+        }
+        
+        System.out.println("Número Cromático Vértices (qui): " + numCromatico);
+        System.out.println("Atribuição de Cores nos Vértices (1-based):");
+        for (int c = 1; c <= numCromatico; c++) {
+            System.out.print("   Cor " + c + ": { ");
+            boolean primeiro = true;
+            for (int i = 0; i < n; i++) {
+                if (coresVertices[i] == c) {
+                    if (!primeiro) System.out.print(", ");
+                    System.out.print("P" + (i + 1));
+                    primeiro = false;
+                }
+            }
+            System.out.println(" }");
+        }
+        
+        // B. Coloração de Arestas
+        System.out.println("\n----------------------------------------------------------------------");
+        System.out.println("   PARTE B: COLORAÇÃO DE ARESTAS (TEOREMA DE VIZING)");
+        System.out.println("----------------------------------------------------------------------");
+        
+        int maxGrau = obterGrauMaximo();
+        System.out.println("Grau Máximo do Grafo (Delta): " + maxGrau);
+        System.out.println("Pelo Teorema de Vizing, o índice cromático (chi') é Delta ou Delta + 1.");
+        
+        // Reunir arestas únicas
+        java.util.List<int[]> arestas = new java.util.ArrayList<>();
+        for (int[] e : arestasFigB) {
+            arestas.add(e);
+        }
+        
+        int[] coresArestas = new int[arestas.size()];
+        int indiceCromatico = maxGrau;
+        
+        System.out.println("Testando coloribilidade com k = Delta = " + maxGrau + "...");
+        java.util.Arrays.fill(coresArestas, 0);
+        if (colorirArestasQ5(0, maxGrau, coresArestas, arestas)) {
+            indiceCromatico = maxGrau;
+            System.out.println("Sucesso! O grafo é de Classe 1.");
+        } else {
+            System.out.println("Falhou! Testando com k = Delta + 1 = " + (maxGrau + 1) + "...");
+            java.util.Arrays.fill(coresArestas, 0);
+            if (colorirArestasQ5(0, maxGrau + 1, coresArestas, arestas)) {
+                indiceCromatico = maxGrau + 1;
+                System.out.println("Sucesso! O grafo é de Classe 2.");
+            }
+        }
+        
+        System.out.println("\nÍndice Cromático Arestas (chi'): " + indiceCromatico);
+        System.out.println("Atribuição de Cores nas Arestas:");
+        for (int c = 1; c <= indiceCromatico; c++) {
+            System.out.print("   Cor " + c + ": { ");
+            boolean primeiro = true;
+            for (int i = 0; i < arestas.size(); i++) {
+                if (coresArestas[i] == c) {
+                    int[] e = arestas.get(i);
+                    if (!primeiro) System.out.print(", ");
+                    System.out.print("(P" + (e[0] + 1) + ", P" + (e[1] + 1) + ")");
+                    primeiro = false;
+                }
+            }
+            System.out.println(" }");
+        }
+        System.out.println("======================================================================");
+    }
+
+    private boolean colorirVerticesQ5(int idx, int k, int[] cores, java.util.List<Integer>[] adjList) {
+        if (idx == 11) return true;
+        for (int c = 1; c <= k; c++) {
+            boolean valido = true;
+            for (int vizinho : adjList[idx]) {
+                if (cores[vizinho] == c) {
+                    valido = false;
+                    break;
+                }
+            }
+            if (valido) {
+                cores[idx] = c;
+                if (colorirVerticesQ5(idx + 1, k, cores, adjList)) return true;
+                cores[idx] = 0;
+            }
+        }
+        return false;
+    }
+
+    private boolean colorirArestasQ5(int idx, int k, int[] coresArestas, java.util.List<int[]> arestas) {
+        if (idx == arestas.size()) return true;
+        int[] e1 = arestas.get(idx);
+        for (int c = 1; c <= k; c++) {
+            boolean valido = true;
+            for (int j = 0; j < idx; j++) {
+                if (coresArestas[j] == c) {
+                    int[] e2 = arestas.get(j);
+                    if (e1[0] == e2[0] || e1[0] == e2[1] || e1[1] == e2[0] || e1[1] == e2[1]) {
+                        valido = false;
+                        break;
+                    }
+                }
+            }
+            if (valido) {
+                coresArestas[idx] = c;
+                if (colorirArestasQ5(idx + 1, k, coresArestas, arestas)) return true;
+                coresArestas[idx] = 0;
+            }
+        }
+        return false;
     }
 }

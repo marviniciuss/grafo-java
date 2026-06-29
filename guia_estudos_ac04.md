@@ -281,27 +281,27 @@ $$1 \to 2 \to 3 \to 1 \to 2 \to 7 \to 8 \to 6 \to 2 \to 7 \to 8 \to 9 \to 6 \to 
 ---
 
 ### Questão 5: Coloração de Vértices e Arestas do Grafo da Figura B
-Modelamos e rodamos a coloração exata para a estrutura do grafo planar da Figura B (com 11 vértices).
+Modelamos e rodamos a coloração exata para a estrutura do grafo planar da Figura B (com 11 vértices e 23 arestas) diretamente na Opção 35 do seu programa Java. Os resultados didáticos 1-based obtidos são:
 
-#### Coloração de Vértices:
+#### Coloração de Vértices (k-Coloração):
 O grafo é **4-colorível**. A atribuição de cores de custo mínimo é:
-*   **Cor 1:** Vértices $\{0, 4, 5, 7\}$
-*   **Cor 2:** Vértices $\{1, 2, 6\}$
-*   **Cor 3:** Vértices $\{3, 8, 10\}$
-*   **Cor 4:** Vértice $\{9\}$
+*   **Cor 1:** Vértices $\{P_1, P_5, P_6, P_8\}$
+*   **Cor 2:** Vértices $\{P_2, P_3, P_7\}$
+*   **Cor 3:** Vértices $\{P_4, P_9, P_{11}\}$
+*   **Cor 4:** Vértice $\{P_{10}\}$
 *   **Número Cromático $\chi(G) = 4$.**
 
 #### Coloração de Arestas:
-O grau máximo do grafo é $\Delta(G) = 6$ (no vértice 3).
-Utilizando o teorema de Vizing, testamos se o grafo é Classse 1. O algoritmo obteve sucesso com exatamente $6$ cores.
+O grau máximo do grafo é $\Delta(G) = 6$ (no vértice $P_4$).
+Utilizando o teorema de Vizing e o algoritmo exato, o grafo foi colorido com sucesso usando exatamente **6 cores** (Classe 1).
 *   **Índice Cromático $\chi'(G) = 6$ (Classe 1).**
 *   **Coloração das Arestas:**
-    *   Arestas com **Cor 1:** $(2, 8)$, $(3, 6)$, $(5, 9)$, $(0, 1)$, $(4, 10)$
-    *   Arestas com **Cor 2:** $(0, 2)$, $(7, 10)$, $(3, 5)$, $(1, 4)$, $(6, 9)$
-    *   Arestas com **Cor 3:** $(3, 4)$, $(8, 9)$, $(5, 6)$
-    *   Arestas com **Cor 4:** $(4, 6)$, $(9, 10)$, $(2, 3)$, $(5, 8)$
-    *   Arestas com **Cor 5:** $(2, 5)$, $(1, 3)$, $(7, 9)$, $(6, 10)$
-    *   Arestas com **Cor 6:** $(0, 3)$, $(7, 8)$
+    *   **Cor 1:** $(P_1, P_2)$, $(P_3, P_4)$, $(P_5, P_7)$, $(P_6, P_9)$, $(P_8, P_{10})$
+    *   **Cor 2:** $(P_1, P_3)$, $(P_2, P_4)$, $(P_5, P_{11})$, $(P_6, P_7)$, $(P_8, P_9)$
+    *   **Cor 3:** $(P_1, P_4)$, $(P_2, P_5)$, $(P_3, P_6)$, $(P_7, P_{10})$, $(P_8, P_{11})$
+    *   **Cor 4:** $(P_3, P_9)$, $(P_4, P_5)$, $(P_6, P_{10})$, $(P_7, P_{11})$
+    *   **Cor 5:** $(P_4, P_6)$, $(P_9, P_{10})$
+    *   **Cor 6:** $(P_4, P_7)$, $(P_{10}, P_{11})$
 
 ---
 

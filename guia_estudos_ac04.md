@@ -237,7 +237,14 @@ Neste cenário, todas as conexões entre os 10 vértices são permitidas.
 ---
 
 ### Questão 4: Carteiro Chinês Direcionado (Grafo do Exercício)
-Buscamos a rota ótima para o carteiro chinês no grafo direcionado de 10 vértices de [`grafo_04.png`](file:///C:/Users/Vinicius/Downloads/Grafos%20IV/grafo_04.png), cujas coordenadas 2D são idênticas às da Figura A. O grafo original possui 16 arcos direcionados e custo total acumulado de **45.7033**.
+Buscamos a rota ótima para o carteiro chinês no grafo direcionado de 10 vértices de [`grafo_04.png`](file:///C:/Users/Vinicius/Downloads/Grafos%20IV/grafo_04.png). Atribuímos os seguintes **custos positivos inteiros** para os 16 arcos originais do grafo:
+*   $P_1 \to P_2$: custo 3 | $P_2 \to P_3$: custo 2 | $P_3 \to P_1$: custo 4
+*   $P_2 \to P_7$: custo 5 | $P_7 \to P_8$: custo 2 | $P_8 \to P_6$: custo 3
+*   $P_6 \to P_2$: custo 3 | $P_3 \to P_5$: custo 4 | $P_5 \to P_4$: custo 3
+*   $P_4 \to P_1$: custo 5 | $P_6 \to P_5$: custo 2 | $P_8 \to P_9$: custo 4
+*   $P_9 \to P_6$: custo 3 | $P_5 \to P_9$: custo 3 | $P_9 \to P_{10}$: custo 2 | $P_{10} \to P_5$: custo 3
+
+*Soma dos custos dos arcos originais:* **51**.
 
 #### Passo 1: Calcular os Graus e Identificar Desbalanceamentos
 Calculamos o saldo de cada vértice como $\text{Saldo} = \text{Entrada} - \text{Saída}$:
@@ -255,21 +262,21 @@ Calculamos o saldo de cada vértice como $\text{Saldo} = \text{Entrada} - \text{
 Fontes de duplicação: **P1** e **P5**. Sumidouros de duplicação: **P3** e **P8**.
 
 #### Passo 2: Modelo de Emparelhamento de Custo Mínimo para Duplicação
-Buscamos caminhos mais curtos que liguem as fontes de duplicação $\{P_1, P_5\}$ aos sumidouros $\{P_3, P_8\}$:
-*   **Opção 1:** Ligar $P_1 \to P_3$ (custo 4.1116) e $P_5 \to P_8$ (custo 15.7308) $\implies$ Custo Total = **19.8424**
-*   **Opção 2:** Ligar $P_1 \to P_8$ (custo 9.2731) e $P_5 \to P_3$ (custo 10.5692) $\implies$ Custo Total = **19.8424**
+Buscamos caminhos mais curtos direcionados ligando as fontes $\{P_1, P_5\}$ aos sumidouros $\{P_3, P_8\}$:
+*   **Opção 1:** Ligar $P_1 \to P_3$ (custo 5) e $P_5 \to P_8$ (custo 16) $\implies$ Custo Total = **21**
+*   **Opção 2:** Ligar $P_1 \to P_8$ (custo 10) e $P_5 \to P_3$ (custo 11) $\implies$ Custo Total = **21**
 
-Ambas as opções de emparelhamento têm o mesmo custo ótimo. Escolhemos a **Opção 2**, que duplica os seguintes caminhos:
-1.  **Caminho de P1 para P8:** Duplica os arcos $P_1 \to P_2$, $P_2 \to P_7$, $P_7 \to P_8$.
-2.  **Caminho de P5 para P3:** Duplica os arcos $P_5 \to P_9$, $P_9 \to P_6$, $P_6 \to P_2$, $P_2 \to P_3$.
+Ambas as opções de emparelhamento resultam no mesmo custo ótimo. Escolhemos a **Opção 2**, que duplica os seguintes caminhos:
+1.  **Caminho de P1 para P8:** Duplica os arcos $P_1 \to P_2$ (3), $P_2 \to P_7$ (5), $P_7 \to P_8$ (2).
+2.  **Caminho de P5 para P3:** Duplica os arcos $P_5 \to P_9$ (3), $P_9 \to P_6$ (3), $P_6 \to P_2$ (3), $P_2 \to P_3$ (2).
 
-*Custo adicional da duplicação:* **19.8424**.
+*Custo adicional da duplicação:* **21**.
 
 #### Rota Completa do Carteiro Chinês (Circuito Euleriano):
 Após duplicar os arcos descritos, todos os vértices ficam balanceados. A rota do carteiro inicia e termina em $P_1$ (23 arcos no total):
 $$1 \to 2 \to 3 \to 1 \to 2 \to 7 \to 8 \to 6 \to 2 \to 7 \to 8 \to 9 \to 6 \to 5 \to 9 \to 10 \to 5 \to 9 \to 6 \to 2 \to 3 \to 5 \to 4 \to 1$$
 
-*   **Custo total do percurso ótimo:** $45.7033 + 19.8424 = \mathbf{65.5457}$.
+*   **Custo total do percurso ótimo:** $51 + 21 = \mathbf{72}$.
 
 ---
 

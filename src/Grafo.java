@@ -2794,18 +2794,18 @@ public class Grafo {
         double[] y = {8.5, 6.0, 7.0, 7.3, 5.2, 4.3, 1.5, 1.9, 1.8, 1.2};
         int n = 10;
         
-        // 2. Arestas direcionadas de grafo_04.png (0-based)
+        // 2. Arestas direcionadas de grafo_04.png (0-based) com CUSTOS POSITIVOS ATRIBUÍDOS (inteiros)
         int[][] arestasPCC = {
-            {0, 1}, {1, 2}, {2, 0},       // Ciclo 1->2->3->1
-            {1, 6}, {6, 7}, {7, 5}, {5, 1}, // Ciclo 2->7->8->6->2
-            {2, 4}, {4, 3}, {3, 0},       // Caminho 3->5->4->1
-            {5, 4},                       // 6->5
-            {7, 8}, {8, 5},               // 8->9->6
-            {4, 8},                       // 5->9
-            {8, 9}, {9, 4}                // 9->10->5
+            {0, 1, 3}, {1, 2, 2}, {2, 0, 4},       // Ciclo 1->2->3->1
+            {1, 6, 5}, {6, 7, 2}, {7, 5, 3}, {5, 1, 3}, // Ciclo 2->7->8->6->2
+            {2, 4, 4}, {4, 3, 3}, {3, 0, 5},       // Caminho 3->5->4->1
+            {5, 4, 2},                             // 6->5
+            {7, 8, 4}, {8, 5, 3},                   // 8->9->6
+            {4, 8, 3},                             // 5->9
+            {8, 9, 2}, {9, 4, 3}                   // 9->10->5
         };
         
-        // Inicialização do grafo e cálculo de distâncias
+        // Inicialização do grafo
         destruirGrafo();
         this.capacidadeAtual = n;
         this.vetorVertices = new Vertice[n];
@@ -2823,14 +2823,18 @@ public class Grafo {
         for (int[] e : arestasPCC) {
             int u = e[0];
             int v = e[1];
-            double dist = Math.sqrt((x[u] - x[v]) * (x[u] - x[v]) + (y[u] - y[v]) * (y[u] - y[v]));
+            double dist = e[2]; // Custos positivos atribuídos
             d[u][v] = dist;
             incluirAresta(u, v, dist, "D"); // Direcionado
             originalCost += dist;
         }
         
         System.out.println("1. Grafo direcionado populado com 10 vértices e 16 arcos.");
-        System.out.println("   - Soma dos custos dos arcos originais: " + String.format("%.4f", originalCost));
+        System.out.println("   - Custos positivos atribuídos aos arcos originais:");
+        System.out.println("     P1->P2: 3 | P2->P3: 2 | P3->P1: 4 | P2->P7: 5 | P7->P8: 2 | P8->P6: 3");
+        System.out.println("     P6->P2: 3 | P3->P5: 4 | P5->P4: 3 | P4->P1: 5 | P6->P5: 2 | P8->P9: 4");
+        System.out.println("     P9->P6: 3 | P5->P9: 3 | P9->P10: 2 | P10->P5: 3");
+        System.out.println("   - Soma dos custos dos arcos originais: " + String.format("%.1f", originalCost));
         
         // 3. Graus de Entrada e Saída
         int[] outDeg = new int[n];
@@ -2896,8 +2900,8 @@ public class Grafo {
         double cost2 = sp[s1][t2] + sp[s2][t1];
         
         System.out.println("\n4. Opções de Emparelhamento (Matching) para Duplicação:");
-        System.out.println("   - Opção 1: P" + (s1 + 1) + " -> P" + (t1 + 1) + " e P" + (s2 + 1) + " -> P" + (t2 + 1) + " | Custo = " + String.format("%.4f", cost1));
-        System.out.println("   - Opção 2: P" + (s1 + 1) + " -> P" + (t2 + 1) + " e P" + (s2 + 1) + " -> P" + (t1 + 1) + " | Custo = " + String.format("%.4f", cost2));
+        System.out.println("   - Opção 1: P" + (s1 + 1) + " -> P" + (t1 + 1) + " e P" + (s2 + 1) + " -> P" + (t2 + 1) + " | Custo = " + String.format("%.1f", cost1));
+        System.out.println("   - Opção 2: P" + (s1 + 1) + " -> P" + (t2 + 1) + " e P" + (s2 + 1) + " -> P" + (t1 + 1) + " | Custo = " + String.format("%.1f", cost2));
         
         java.util.List<int[]> optEdges = new java.util.ArrayList<>();
         if (cost1 < cost2) {
@@ -2913,11 +2917,11 @@ public class Grafo {
         double duplicationCost = 0.0;
         System.out.println("\n5. Arcos Duplicados Necessários:");
         for (int[] e : optEdges) {
-            double dist = Math.sqrt((x[e[0]] - x[e[1]]) * (x[e[0]] - x[e[1]]) + (y[e[0]] - y[e[1]]) * (y[e[0]] - y[e[1]]));
+            double dist = d[e[0]][e[1]];
             duplicationCost += dist;
-            System.out.println("   - Duplicar Arco P" + (e[0] + 1) + " -> P" + (e[1] + 1) + " (Custo: " + String.format("%.4f", dist) + ")");
+            System.out.println("   - Duplicar Arco P" + (e[0] + 1) + " -> P" + (e[1] + 1) + " (Custo: " + String.format("%.1f", dist) + ")");
         }
-        System.out.println("   - Custo total da duplicação: " + String.format("%.4f", duplicationCost));
+        System.out.println("   - Custo total da duplicação: " + String.format("%.1f", duplicationCost));
         
         // 7. Achar o Circuito Euleriano do Grafo Aumentado usando Algoritmo de Hierholzer
         java.util.List<Integer>[] augAdj = new java.util.ArrayList[n];
@@ -2953,7 +2957,7 @@ public class Grafo {
         System.out.println("\n6. Rota do Carteiro Chinês (1-based):");
         System.out.println("   " + displayCircuit);
         System.out.println("   - Número de arcos percorridos: " + (eulerCircuit.size() - 1));
-        System.out.println("   - Custo total da viagem do carteiro: " + String.format("%.4f", (originalCost + duplicationCost)));
+        System.out.println("   - Custo total da viagem do carteiro: " + String.format("%.1f", (originalCost + duplicationCost)));
         System.out.println("======================================================================");
     }
 

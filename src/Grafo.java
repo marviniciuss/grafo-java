@@ -2966,27 +2966,25 @@ public class Grafo {
 
     public void executarQuestao5() {
         System.out.println("======================================================================");
-        System.out.println("   RESOLUÇÃO DA QUESTÃO 05 - COLORAÇÃO DE VÉRTICES E ARESTAS (FIGURA B)");
+        System.out.println("   RESOLUÇÃO DA QUESTÃO 05 - COLORAÇÃO DE VÉRTICES E ARESTAS");
         System.out.println("======================================================================");
         
-        int n = 11;
+        int n = 10;
         
-        // 1. Definição das conexões do grafo da Figura B (não direcionado)
-        // Adjacências do grafo da Figura B
+        // 1. Definição das conexões do grafo de grafo_imagem.png (não direcionado)
         java.util.List<Integer>[] adjList = new java.util.ArrayList[n];
         for (int i = 0; i < n; i++) adjList[i] = new java.util.ArrayList<>();
         
         int[][] arestasFigB = {
-            {0, 1}, {0, 2}, {0, 3},
-            {1, 3}, {1, 4},
-            {2, 3}, {2, 5}, {2, 8},
-            {3, 4}, {3, 5}, {3, 6},
-            {4, 6}, {4, 10},
-            {5, 6}, {5, 8}, {5, 9},
-            {6, 9}, {6, 10},
-            {7, 8}, {7, 9}, {7, 10},
-            {8, 9},
-            {9, 10}
+            {0, 1}, {0, 2}, {0, 3}, // 1-2, 1-3, 1-4
+            {1, 2}, {1, 5}, {1, 6}, // 2-3, 2-6, 2-7
+            {2, 4},                 // 3-5
+            {3, 4},                 // 4-5
+            {4, 5}, {4, 8}, {4, 9}, // 5-6, 5-9, 5-10
+            {5, 7}, {5, 8},         // 6-8, 6-9
+            {6, 7},                 // 7-8
+            {7, 8},                 // 8-9
+            {8, 9}                  // 9-10
         };
         
         destruirGrafo();
@@ -3005,7 +3003,7 @@ public class Grafo {
             incluirAresta(v, u, 1.0, "E");
         }
         
-        System.out.println("1. Grafo da Figura B gerado com 11 vértices e 23 arestas não direcionadas.");
+        System.out.println("1. Grafo de grafo_imagem.png gerado com 10 vértices e 16 arestas não direcionadas.");
         
         // A. Coloração de Vértices
         System.out.println("\n----------------------------------------------------------------------");
@@ -3088,7 +3086,7 @@ public class Grafo {
     }
 
     private boolean colorirVerticesQ5(int idx, int k, int[] cores, java.util.List<Integer>[] adjList) {
-        if (idx == 11) return true;
+        if (idx == 10) return true;
         for (int c = 1; c <= k; c++) {
             boolean valido = true;
             for (int vizinho : adjList[idx]) {
